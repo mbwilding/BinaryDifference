@@ -6,6 +6,6 @@ Only works with files of the same size under 2GB.
 Requires: https://dotnet.microsoft.com/download/dotnet/5.0/runtime
 -Select Windows Desktop x64
 
-Download: https://github.com/mbwilding/BinaryDifference/releases/download/1.0/BinaryDifference.exe
+Download: https://github.com/mbwilding/BinaryDifference/releases/download/1.0/BinaryDifference.zip
 
 ![Binary Difference](Preview.png?raw=true "Binary Difference")
