@@ -1,28 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 
 namespace BinaryDifference
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         public MainWindow()
         {
@@ -41,9 +25,9 @@ namespace BinaryDifference
 
         private void Compare_Button_Click(object sender, RoutedEventArgs e)
         {
-            if (CompareFile1_Box.Uid != String.Empty && CompareFile2_Box.Uid != String.Empty)
-            {
-                /*
+            if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
+            {   //TODO Add thread
+                /* 
                 this.Dispatcher.Invoke(() =>
                 {
                     CheckDifference(LoadFile(CompareFile1_Box.Uid), LoadFile(CompareFile2_Box.Uid));
@@ -71,6 +55,8 @@ namespace BinaryDifference
                 {
                     box.Text = fileDialog.SafeFileName;
                     box.Uid = fileDialog.FileName;
+                    Compare_Listbox1.Items.Clear();
+                    Compare_Listbox2.Items.Clear();
                     CompareStatus_Box.Text = "File loaded.";
                 }
             }
@@ -93,17 +79,21 @@ namespace BinaryDifference
             Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
         }
 
+        private void ItemEdit(ListBox box, int index, string text)
+        {
+            string content = (String)box.Items.GetItemAt(index);
+            box.Items.RemoveAt(index);
+            box.Items.Insert(index, content + text);
+        }
+
         private void CheckDifference(string file1, string file2)
         {
             ButtonToggle();
-            Compare_Scroll1.Content = String.Empty;
-            Compare_Scroll2.Content = String.Empty;
             CompareStatus_Box.Text = "Processing...";
-
             int offset = 0;
+            int index = 0;
             bool sequentialDiff = false;
-            int length = file1.Length / 2;      // TODO Fix code for different size files
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < file1.Length / 2; i++)  //TODO Change code to accept different file sizes
             {
                 string temp1 = file1.Substring(offset * 2, 2);
                 string temp2 = file2.Substring(offset * 2, 2);
@@ -111,19 +101,22 @@ namespace BinaryDifference
                 {
                     if (!sequentialDiff)
                     {
-                        Compare_Scroll1.Content += "\r\n0x" + offset.ToString("X") + ": ";
-                        Compare_Scroll2.Content += "\r\n0x" + offset.ToString("X") + ": ";
+                        string box1 = "0x" + offset.ToString("X") + ": " + temp1;
+                        string box2 = "0x" + offset.ToString("X") + ": " + temp2;
+                        index = Compare_Listbox1.Items.Add(box1);
+                        Compare_Listbox2.Items.Add(box2);
                         sequentialDiff = true;
                     }
-
-                    Compare_Scroll1.Content += temp2;
-                    Compare_Scroll2.Content += temp1;
+                    else
+                    {
+                        ItemEdit(Compare_Listbox1, index, temp1);
+                        ItemEdit(Compare_Listbox2, index, temp2);
+                    }
                 }
-                else // Same value
+                else
                 {
                     sequentialDiff = false;
                 }
-
                 offset++;
             }
             ButtonToggle();
