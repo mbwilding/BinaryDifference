@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -26,13 +27,7 @@ namespace BinaryDifference
         private void Compare_Button_Click(object sender, RoutedEventArgs e)
         {
             if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
-            {   //TODO Add thread
-                /* 
-                this.Dispatcher.Invoke(() =>
-                {
-                    CheckDifference(LoadFile(CompareFile1_Box.Uid), LoadFile(CompareFile2_Box.Uid));
-                });
-                */
+            {
                 CheckDifference(LoadFile(CompareFile1_Box.Uid), LoadFile(CompareFile2_Box.Uid));
             }
             else
@@ -55,9 +50,14 @@ namespace BinaryDifference
                 {
                     box.Text = fileDialog.SafeFileName;
                     box.Uid = fileDialog.FileName;
-                    Compare_Listbox1.Items.Clear();
-                    Compare_Listbox2.Items.Clear();
                     CompareStatus_Box.Text = "File loaded.";
+
+                    Dispatcher.BeginInvoke(new ThreadStart(() =>
+                        {
+                            Compare_Listbox1.Items.Clear();
+                            Compare_Listbox2.Items.Clear();
+                        }
+                    ));
                 }
             }
         }
@@ -74,9 +74,13 @@ namespace BinaryDifference
 
         private void ButtonToggle()
         {
-            File1_Button.IsEnabled = !File1_Button.IsEnabled;
-            File2_Button.IsEnabled = !File2_Button.IsEnabled;
-            Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+            Dispatcher.BeginInvoke(new ThreadStart(() =>
+            {
+                File1_Button.IsEnabled = !File1_Button.IsEnabled;
+                File2_Button.IsEnabled = !File2_Button.IsEnabled;
+                Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+            }
+            ));
         }
 
         private void ItemEdit(ListBox box, int index, string text)
@@ -88,39 +92,63 @@ namespace BinaryDifference
 
         private void CheckDifference(string file1, string file2)
         {
-            ButtonToggle();
-            CompareStatus_Box.Text = "Processing...";
-            int offset = 0;
-            int index = 0;
-            bool sequentialDiff = false;
-            for (int i = 0; i < file1.Length / 2; i++)  //TODO Change code to accept different file sizes
+            new Thread(() =>
             {
-                string temp1 = file1.Substring(offset * 2, 2);
-                string temp2 = file2.Substring(offset * 2, 2);
-                if (temp1 != temp2)
-                {
-                    if (!sequentialDiff)
+                ButtonToggle();
+                Dispatcher.BeginInvoke(new ThreadStart(() =>
                     {
-                        string box1 = "0x" + offset.ToString("X") + ": " + temp1;
-                        string box2 = "0x" + offset.ToString("X") + ": " + temp2;
-                        index = Compare_Listbox1.Items.Add(box1);
-                        Compare_Listbox2.Items.Add(box2);
-                        sequentialDiff = true;
+                        Compare_Listbox1.Items.Clear();
+                        Compare_Listbox2.Items.Clear();
+                        CompareStatus_Box.Text = "Processing...";
+                    }
+                ));
+                int offset = 0;
+                int index = 0;
+                bool sequentialDiff = false;
+                for (int i = 0; i < file1.Length / 2; i++)  //TODO Change code to accept different file sizes
+                {
+                    string temp1 = file1.Substring(offset * 2, 2);
+                    string temp2 = file2.Substring(offset * 2, 2);
+                    if (temp1 != temp2)
+                    {
+                        if (!sequentialDiff)
+                        {
+                            sequentialDiff = true;
+                            string box1 = "0x" + offset.ToString("X") + ": " + temp1;
+                            string box2 = "0x" + offset.ToString("X") + ": " + temp2;
+                            
+                            Dispatcher.BeginInvoke(new ThreadStart(() =>
+                                {
+                                    index = Compare_Listbox1.Items.Add(box1);
+                                    Compare_Listbox2.Items.Add(box2);
+                                }
+                            ));
+                        }
+                        else
+                        {
+                            Dispatcher.BeginInvoke(new ThreadStart(() =>
+                                {
+                                    ItemEdit(Compare_Listbox1, index, temp1);
+                                    ItemEdit(Compare_Listbox2, index, temp2);
+                                }
+                            ));
+                        }
                     }
                     else
                     {
-                        ItemEdit(Compare_Listbox1, index, temp1);
-                        ItemEdit(Compare_Listbox2, index, temp2);
+                        sequentialDiff = false;
                     }
+                    offset++;
                 }
-                else
-                {
-                    sequentialDiff = false;
-                }
-                offset++;
-            }
-            ButtonToggle();
-            CompareStatus_Box.Text = "Compare completed.";
+
+                Dispatcher.BeginInvoke(new ThreadStart(() =>
+                    {
+                        ButtonToggle();
+                        CompareStatus_Box.Text = "Compare completed.";
+                    }
+                ));
+
+            }).Start();
         }
     }
 }

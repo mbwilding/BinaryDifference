@@ -4,6 +4,11 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Authors>Matthew Wilding</Authors>
+    <Company>Wilding Studios</Company>
+    <PackageId>Binary Difference</PackageId>
+    <AssemblyName>Binary Difference</AssemblyName>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>

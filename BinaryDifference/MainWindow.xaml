@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BinaryDifference"
         xmlns:Core="clr-namespace:ScrollViewerSynchronization.Core"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="550">
+        Title="Binary Difference" Height="450" Width="550">
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
