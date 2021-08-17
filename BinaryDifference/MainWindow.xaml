@@ -7,6 +7,7 @@
         xmlns:Core="clr-namespace:ScrollViewerSynchronization.Core"
         mc:Ignorable="d"
         Title="Binary Difference" Height="450" Width="550">
+
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -20,17 +21,18 @@
                 <RowDefinition Height="20"/>
                 <RowDefinition Height="20"/>
             </Grid.RowDefinitions>
-            <Button x:Name="File1_Button" Grid.Column="0" Grid.Row="0" Content="File 1" Click="File1_Button_Click" IsTabStop="False" />
-            <Button x:Name="File2_Button" Grid.Column="1" Grid.Row="0" Content="File 2" Click="File2_Button_Click" IsTabStop="False" />
+            <Button x:Name="File1_Button" Grid.Column="0" Grid.Row="0" Content="File 1" Click="File1_Button_Click" IsTabStop="True" />
+            <Button x:Name="File2_Button" Grid.Column="1" Grid.Row="0" Content="File 2" Click="File2_Button_Click" IsTabStop="True" />
             <TextBox x:Name="CompareFile1_Box" Grid.Column="0" Grid.Row="1" Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1"/>
             <TextBox x:Name="CompareFile2_Box" Grid.Column="1" Grid.Row="1" Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1"/>
-            <ScrollViewer x:Name="Compare_Scroll1" Grid.Column="0" Grid.Row="2" CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Courier New" Core:ScrollSynchronizer.ScrollSyncType="Both">
-                <ListBox x:Name="Compare_Listbox1"/>
+            <ScrollViewer x:Name="Compare_Scroll1" Grid.Column="0" Grid.Row="2" CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Courier New" Core:ScrollSynchronizer.ScrollSyncType="Both" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
+                <ListBox x:Name="Compare_Listbox1" IsHitTestVisible="False"/>
             </ScrollViewer>
-            <ScrollViewer x:Name="Compare_Scroll2" Grid.Column="1" Grid.Row="2" CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Courier New" Core:ScrollSynchronizer.ScrollSyncType="Both">
-                <ListBox x:Name="Compare_Listbox2"/>
+            <ScrollViewer x:Name="Compare_Scroll2" Grid.Column="1" Grid.Row="2" CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Courier New" Core:ScrollSynchronizer.ScrollSyncType="Both" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
+                <ListBox x:Name="Compare_Listbox2" IsHitTestVisible="False"/>
             </ScrollViewer>
-            <Button x:Name="Compare_Button" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2"  Content="Compare Files" Click="Compare_Button_Click" IsTabStop="False"/>
+            <Button x:Name="Compare_Button" Grid.Column="0" Grid.Row="3" Content="Compare Files" Click="Compare_Button_Click" IsTabStop="True"/>
+            <Button x:Name="Save_Button" Grid.Column="1" Grid.Row="3" Content="Export Results" Click="Save_Button_Click" IsTabStop="True" IsEnabled="False"/>
             <TextBox x:Name="CompareStatus_Box" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Text="Please load the files to compare." Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1"/>
         </Grid>
     </Grid>

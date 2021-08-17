@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -11,6 +12,9 @@ namespace BinaryDifference
     {
         public MainWindow()
         {
+            Control.IsTabStopProperty.OverrideMetadata(
+                typeof(Control),
+                new FrameworkPropertyMetadata(false));
             InitializeComponent();
         }
 
@@ -29,6 +33,18 @@ namespace BinaryDifference
             FileValidation();
         }
 
+        private void Save_Button_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFile();
+        }
+        
+        private void ScrollViewer_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta / 5);
+            e.Handled = true;
+        }
+
         private void FileBrowse(TextBox box)
         {
             var fileDialog = new OpenFileDialog();
@@ -43,7 +59,8 @@ namespace BinaryDifference
                 {
                     box.Text = fileDialog.SafeFileName;
                     box.Uid = fileDialog.FileName;
-                    CompareStatus_Box.Text = "File loaded.";
+                    CompareStatus_Box.Text = box.Uid + " loaded.";
+                    Save_Button.IsEnabled = false;
 
                     Dispatcher.BeginInvoke(new ThreadStart(() =>
                         {
@@ -156,14 +173,72 @@ namespace BinaryDifference
                     offset++;
                 }
 
-                Dispatcher.BeginInvoke(new ThreadStart(() =>
-                    {
-                        ButtonToggle();
-                        CompareStatus_Box.Text = "Compare completed.";
-                    }
-                ));
+                if (Compare_Listbox1.Items.IsEmpty)
+                {
+                    Dispatcher.BeginInvoke(new ThreadStart(() =>
+                        {
+                            ButtonToggle();
+                            CompareStatus_Box.Text = "Files are identical.";
+                        }
+                    ));
+                }
+                else
+                {
+                    Dispatcher.BeginInvoke(new ThreadStart(() =>
+                        {
+                            ButtonToggle();
+                            Save_Button.IsEnabled = true;
+                            CompareStatus_Box.Text = "Compare completed.";
+                        }
+                    ));
+                }
 
             }).Start();
+        }
+
+        private void SaveFile()
+        {
+            var fileDialog = new SaveFileDialog();
+            fileDialog.Filter = "Text files (*.txt)|*.txt";
+            fileDialog.FilterIndex = 2;
+            fileDialog.RestoreDirectory = true;
+            
+            if (fileDialog.ShowDialog() == true)
+            {
+                List<string> list = new List<string>();
+                ListCreate(list, CompareFile1_Box, Compare_Listbox1);
+                ListCreate(list, CompareFile2_Box, Compare_Listbox2);
+                WriteFile(list, fileDialog.FileName);
+            }
+        }
+
+        private void ListCreate(List<string> list, TextBox box, ListBox listBox)
+        {
+            list.Add(box.Uid);
+            list.Add("----------");
+            list.Add(String.Empty);
+            foreach (string s in listBox.Items)
+            {
+                list.Add(s);
+            }
+            list.Add(String.Empty);
+        }
+
+        private void WriteFile(List<string> list, string path)
+        {
+            using (TextWriter tw = new StreamWriter(path))
+            {
+                foreach (String s in list)
+                    tw.WriteLine(s);
+            }
+            if (File.Exists(path))
+            {
+                CompareStatus_Box.Text = "Saved file: " + path;
+            }
+            else
+            {
+                CompareStatus_Box.Text = "Saving failed: Permission?";
+            }
         }
     }
 }
