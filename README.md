@@ -1,2 +1,2 @@
 # BinaryDifference
-Only works with same size files under 2GB
+Only works with files of the same size under 2GB
