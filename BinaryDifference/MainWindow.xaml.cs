@@ -26,14 +26,7 @@ namespace BinaryDifference
 
         private void Compare_Button_Click(object sender, RoutedEventArgs e)
         {
-            if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
-            {
-                CheckDifference(LoadFile(CompareFile1_Box.Uid), LoadFile(CompareFile2_Box.Uid));
-            }
-            else
-            {
-                CompareStatus_Box.Text = "Load both files first.";
-            }
+            FileValidation();
         }
 
         private void FileBrowse(TextBox box)
@@ -59,6 +52,28 @@ namespace BinaryDifference
                         }
                     ));
                 }
+            }
+        }
+
+        private void FileValidation()
+        {
+            if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
+            {
+                FileInfo file1 = new FileInfo(CompareFile1_Box.Uid);
+                FileInfo file2 = new FileInfo(CompareFile2_Box.Uid);
+
+                if (file1.Length == file2.Length)
+                {
+                    CheckDifference(LoadFile(CompareFile1_Box.Uid), LoadFile(CompareFile2_Box.Uid));
+                }
+                else
+                {
+                    CompareStatus_Box.Text = "Files cannot be different sizes.";
+                }
+            }
+            else
+            {
+                CompareStatus_Box.Text = "Load both files first.";
             }
         }
 
@@ -105,7 +120,7 @@ namespace BinaryDifference
                 int offset = 0;
                 int index = 0;
                 bool sequentialDiff = false;
-                for (int i = 0; i < file1.Length / 2; i++)  //TODO Change code to accept different file sizes
+                for (int i = 0; i < file1.Length / 2; i++)
                 {
                     string temp1 = file1.Substring(offset * 2, 2);
                     string temp2 = file2.Substring(offset * 2, 2);
