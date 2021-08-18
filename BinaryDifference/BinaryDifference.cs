@@ -12,8 +12,6 @@ namespace BinaryDifference
 
     public partial class MainWindow
     {
-        private const int BufferSetting = 5 * 1024 * 1024;
-
         private void FileBrowse(TextBox box)
         {
             var fileDialog = new OpenFileDialog();
@@ -53,9 +51,8 @@ namespace BinaryDifference
             }
         }
 
-        public byte[] FileReadBuffer(string filePath, long offset)
+        public byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
         {
-            int bufferSize = BufferSetting;
             byte[] buffer = new byte[bufferSize];
 
             using FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -86,14 +83,25 @@ namespace BinaryDifference
                     }
                 ));
 
+                const int bufferMax = 0x7FFFFFC7;
+                int bufferCurrent;
                 long offsetLarge = 0;
                 int index = 0;
                 bool sequentialDiff = false;
+
                 FileInfo file1Details = new FileInfo(file1Path);
+                if (file1Details.Length < bufferMax)
+                {
+                    bufferCurrent = (int)file1Details.Length;
+                }
+                else
+                {
+                    bufferCurrent = bufferMax;
+                }
                 while (offsetLarge < file1Details.Length)
                 {
-                    byte[] file1Buffer = FileReadBuffer(file1Path, offsetLarge);
-                    byte[] file2Buffer = FileReadBuffer(file2Path, offsetLarge);
+                    byte[] file1Buffer = FileReadBuffer(file1Path, offsetLarge, bufferCurrent);
+                    byte[] file2Buffer = FileReadBuffer(file2Path, offsetLarge, bufferCurrent);
 
                     if (file1Buffer != null)
                     {
@@ -136,7 +144,7 @@ namespace BinaryDifference
 
                             offsetSmall++;
                             // TEST
-                            if (offsetSmall == BufferSetting)
+                            if (offsetSmall == bufferCurrent)
                             {
                                 offsetLarge += offsetSmall;
                             }
