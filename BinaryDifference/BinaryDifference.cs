@@ -9,61 +9,72 @@ namespace BinaryDifference
 {
     public partial class MainWindow
     {
+        private readonly int bufferSetting = 5 * 1024 * 1024; // 5MB
+
         private void FileBrowse(TextBox box)
         {
             var fileDialog = new OpenFileDialog();
             if (fileDialog.ShowDialog() == true)
             {
                 var size = new FileInfo(fileDialog.FileName).Length;
-                if (size > 0x7FFFFFFF)
-                {
-                    CompareStatus_Box.Text = "Files have to be under 2GB.";
-                }
-                else
-                {
-                    box.Text = fileDialog.SafeFileName;
-                    box.Uid = fileDialog.FileName;
-                    CompareStatus_Box.Text = box.Uid + " loaded.";
-                    Save_Button.IsEnabled = false;
 
-                    Dispatcher.BeginInvoke(new ThreadStart(() =>
-                        {
-                            Compare_Listbox1.Items.Clear();
-                            Compare_Listbox2.Items.Clear();
-                        }
-                    ));
-                }
+                box.Text = fileDialog.SafeFileName;
+                box.Uid = fileDialog.FileName;
+                CompareStatus_Box.Text = box.Uid + " loaded.";
+                Save_Button.IsEnabled = false;
+
+                Dispatcher.BeginInvoke(new ThreadStart(() =>
+                    {
+                        Compare_Listbox1.Items.Clear();
+                        Compare_Listbox2.Items.Clear();
+                    }
+                ));
+            }
+
+            if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
+            {
+                Compare_Button.IsEnabled = true;
             }
         }
         private void FileValidation()
         {
-            if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
-            {
-                FileInfo file1 = new FileInfo(CompareFile1_Box.Uid);
-                FileInfo file2 = new FileInfo(CompareFile2_Box.Uid);
+            FileInfo file1 = new FileInfo(CompareFile1_Box.Uid);
+            FileInfo file2 = new FileInfo(CompareFile2_Box.Uid);
 
-                if (file1.Length == file2.Length)
-                {
-                    CheckDifference(LoadFile(CompareFile1_Box.Uid), LoadFile(CompareFile2_Box.Uid));
-                }
-                else
-                {
-                    CompareStatus_Box.Text = "Files cannot be different sizes.";
-                }
+            if (file1.Length == file2.Length)
+            {
+                CheckDifference(CompareFile1_Box.Uid, CompareFile2_Box.Uid);
             }
             else
             {
-                CompareStatus_Box.Text = "Load both files first.";
+                CompareStatus_Box.Text = "Files cannot be different sizes.";
             }
         }
-        private static string LoadFile(string filePath)
+
+        public byte[] ProcessLargeFile(string filePath, int offset)
         {
-            byte[] binaryFile = File.ReadAllBytes(filePath);
-            string hexFile = BitConverter.ToString(binaryFile).Replace("-", string.Empty);
-            return hexFile;
+            int bufferSize = bufferSetting;
+            byte[] buffer = new byte[bufferSize];
+            
+            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                if ((int)fs.Length - offset < bufferSize)
+                {
+                    bufferSize = (int)fs.Length - offset;
+                    if (bufferSize == 0)
+                    {
+                        return null;
+                    }
+                }
+
+                int bytesRead = 0;
+                fs.Seek(offset, SeekOrigin.Begin);
+                bytesRead = fs.Read(buffer, 0, bufferSize);
+                return buffer;
+            }
         }
 
-        private void CheckDifference(string file1, string file2)
+        private void CheckDifference(string file1Path, string file2Path)
         {
             new Thread(() =>
             {
@@ -75,44 +86,65 @@ namespace BinaryDifference
                         CompareStatus_Box.Text = "Processing...";
                     }
                 ));
-                int offset = 0;
+
+                int offsetLarge = 0;
                 int index = 0;
                 bool sequentialDiff = false;
-                for (int i = 0; i < file1.Length / 2; i++)
+                FileInfo file1Details = new FileInfo(file1Path);
+                while (offsetLarge < file1Details.Length) // TODO Infinite loop
                 {
-                    string temp1 = file1.Substring(offset * 2, 2);
-                    string temp2 = file2.Substring(offset * 2, 2);
-                    if (temp1 != temp2)
-                    {
-                        if (!sequentialDiff)
-                        {
-                            sequentialDiff = true;
-                            string box1 = "0x" + offset.ToString("X") + ": " + temp1;
-                            string box2 = "0x" + offset.ToString("X") + ": " + temp2;
+                    byte[] file1Buffer = ProcessLargeFile(file1Path, offsetLarge);
+                    byte[] file2Buffer = ProcessLargeFile(file2Path, offsetLarge);
 
-                            Dispatcher.BeginInvoke(new ThreadStart(() =>
-                                {
-                                    index = Compare_Listbox1.Items.Add(box1);
-                                    Compare_Listbox2.Items.Add(box2);
-                                }
-                            ));
-                        }
-                        else
+                    if (file1Buffer != null)
+                    {
+                        int offsetSmall = 0;
+
+                        for (int j = 0; j < file1Buffer.Length; j++)
                         {
-                            Dispatcher.BeginInvoke(new ThreadStart(() =>
+                            string currentValue1 = BitConverter.ToString(file1Buffer, offsetSmall, 1).Replace("-", string.Empty);
+                            string currentValue2 = BitConverter.ToString(file2Buffer, offsetSmall, 1).Replace("-", string.Empty);
+
+                            if (currentValue1 != currentValue2)
+                            {
+                                if (!sequentialDiff)
                                 {
-                                    ItemEdit(Compare_Listbox1, index, temp1);
-                                    ItemEdit(Compare_Listbox2, index, temp2);
+                                    sequentialDiff = true;
+                                    string box1 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + currentValue1;
+                                    string box2 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + currentValue2;
+
+                                    Dispatcher.BeginInvoke(new ThreadStart(() =>
+                                        {
+                                            index = Compare_Listbox1.Items.Add(box1);
+                                            Compare_Listbox2.Items.Add(box2);
+                                        }
+                                    ));
                                 }
-                            ));
+                                else
+                                {
+                                    Dispatcher.BeginInvoke(new ThreadStart(() =>
+                                        {
+                                            ItemEdit(Compare_Listbox1, index, currentValue1);
+                                            ItemEdit(Compare_Listbox2, index, currentValue2);
+                                        }
+                                    ));
+                                }
+                            }
+                            else
+                            {
+                                sequentialDiff = false;
+                            }
+
+                            offsetSmall++;
+                            // TEST
+                            if (offsetSmall == bufferSetting)
+                            {
+                                offsetLarge += offsetSmall;
+                            }
+
                         }
                     }
-                    else
-                    {
-                        sequentialDiff = false;
-                    }
-
-                    offset++;
+                    
                 }
 
                 if (Compare_Listbox1.Items.IsEmpty)

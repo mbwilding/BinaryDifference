@@ -47,7 +47,7 @@
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </ScrollViewer>
-            <Button x:Name="Compare_Button" Grid.Column="0" Grid.Row="3" Content="Compare Files" Click="Compare_Button_Click" IsTabStop="True"/>
+            <Button x:Name="Compare_Button" Grid.Column="0" Grid.Row="3" Content="Compare Files" Click="Compare_Button_Click" IsTabStop="True" IsEnabled="False"/>
             <Button x:Name="Save_Button" Grid.Column="1" Grid.Row="3" Content="Export Results" Click="Save_Button_Click" IsTabStop="True" IsEnabled="False"/>
             <TextBox x:Name="CompareStatus_Box" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Text="Please load the files to compare." Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1"/>
         </Grid>
