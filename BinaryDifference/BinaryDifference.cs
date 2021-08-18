@@ -51,7 +51,7 @@ namespace BinaryDifference
             }
         }
 
-        public byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
+        private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
         {
             byte[] buffer = new byte[bufferSize];
 
@@ -187,7 +187,7 @@ namespace BinaryDifference
             ));
         }
 
-        private void ItemEdit(ListBox box, int index, string text)
+        private static void ItemEdit(ListBox box, int index, string text)
         {
             string content = (String)box.Items.GetItemAt(index);
             box.Items.RemoveAt(index);
@@ -212,7 +212,7 @@ namespace BinaryDifference
             }
         }
 
-        private void ListCreate(List<string> list, TextBox box, ListBox listBox)
+        private static void ListCreate(List<string> list, TextBox box, ListBox listBox)
         {
             list.Add(box.Uid);
             list.Add("-------------");
