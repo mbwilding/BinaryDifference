@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -74,6 +75,9 @@ namespace BinaryDifference
         {
             new Thread(() =>
             {
+                Stopwatch stopWatch = new Stopwatch();
+                stopWatch.Start();
+
                 ButtonToggle();
                 Dispatcher.Invoke(new ThreadStart(() =>
                     {
@@ -159,7 +163,7 @@ namespace BinaryDifference
                     Dispatcher.BeginInvoke(new ThreadStart(() =>
                         {
                             ButtonToggle();
-                            CompareStatus_Box.Text = "Files are identical.";
+                            CompareStatus_Box.Text = "Files are identical. Time elapsed: " + ElapsedTime(stopWatch);
                         }
                     ));
                 }
@@ -169,7 +173,7 @@ namespace BinaryDifference
                         {
                             ButtonToggle();
                             Save_Button.IsEnabled = true;
-                            CompareStatus_Box.Text = "Compare completed.";
+                            CompareStatus_Box.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
                         }
                     ));
                 }
@@ -241,6 +245,14 @@ namespace BinaryDifference
             {
                 CompareStatus_Box.Text = "Saving failed: Check path write permissions.";
             }
+        }
+
+        private string ElapsedTime(Stopwatch stopWatch)
+        {
+            stopWatch.Stop();
+            TimeSpan ts = stopWatch.Elapsed;
+            string elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}";
+            return elapsedTime;
         }
     }
 }
