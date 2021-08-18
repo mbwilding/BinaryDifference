@@ -7,7 +7,7 @@
     <Authors>Matthew Wilding</Authors>
     <Company>Wilding Studios</Company>
     <PackageId>Binary Difference</PackageId>
-    <AssemblyName>Binary Difference</AssemblyName>
+    <AssemblyName>BinaryDifference</AssemblyName>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
