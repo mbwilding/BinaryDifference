@@ -26,10 +26,26 @@
             <TextBox x:Name="CompareFile1_Box" Grid.Column="0" Grid.Row="1" Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1"/>
             <TextBox x:Name="CompareFile2_Box" Grid.Column="1" Grid.Row="1" Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1"/>
             <ScrollViewer x:Name="Compare_Scroll1" Grid.Column="0" Grid.Row="2" CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Courier New" Core:ScrollSynchronizer.ScrollSyncType="Both" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
-                <ListBox x:Name="Compare_Listbox1" IsHitTestVisible="False"/>
+                <ListBox x:Name="Compare_Listbox1" IsHitTestVisible="False">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="IsTabStop" Value="false" />
+                            <Setter Property="BorderThickness" Value="0, 0, 0, 0.3" />
+                            <Setter Property="BorderBrush" Value="#FF646464" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
             </ScrollViewer>
             <ScrollViewer x:Name="Compare_Scroll2" Grid.Column="1" Grid.Row="2" CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Courier New" Core:ScrollSynchronizer.ScrollSyncType="Both" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
-                <ListBox x:Name="Compare_Listbox2" IsHitTestVisible="False"/>
+                <ListBox x:Name="Compare_Listbox2" IsHitTestVisible="False">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="IsTabStop" Value="false" />
+                            <Setter Property="BorderThickness" Value="0, 0, 0, 0.3" />
+                            <Setter Property="BorderBrush" Value="#FF646464" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
             </ScrollViewer>
             <Button x:Name="Compare_Button" Grid.Column="0" Grid.Row="3" Content="Compare Files" Click="Compare_Button_Click" IsTabStop="True"/>
             <Button x:Name="Save_Button" Grid.Column="1" Grid.Row="3" Content="Export Results" Click="Save_Button_Click" IsTabStop="True" IsEnabled="False"/>
