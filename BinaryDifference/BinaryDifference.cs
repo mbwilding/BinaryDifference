@@ -83,7 +83,8 @@ namespace BinaryDifference
                     }
                 ));
 
-                const int bufferMax = 0x7FFFFFC7;
+                // ReSharper disable once CommentTypo
+                const int bufferMax = 5 * 1024 * 1024;  // Set to 5MB, max buffer is 2GB: 0x7FFFFFC7
                 int bufferCurrent;
                 long offsetLarge = 0;
                 int index = 0;
