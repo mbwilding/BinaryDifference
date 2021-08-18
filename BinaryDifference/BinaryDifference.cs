@@ -144,7 +144,7 @@ namespace BinaryDifference
                             }
 
                             offsetSmall++;
-                            // TEST
+
                             if (offsetSmall == bufferCurrent)
                             {
                                 offsetLarge += offsetSmall;
