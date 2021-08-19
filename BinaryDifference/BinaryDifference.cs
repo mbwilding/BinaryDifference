@@ -54,21 +54,23 @@ namespace BinaryDifference
 
         private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
         {
-            byte[] buffer = new byte[bufferSize];
-
             using FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            if (fs.Length - offset < bufferSize)
             {
-                bufferSize = (int)(fs.Length - offset);
-                if (bufferSize == 0)
+                if (fs.Length - offset < bufferSize)
                 {
-                    return null;
-                }
-            }
+                    bufferSize = (int)(fs.Length - offset);
 
-            _ = fs.Seek(offset, SeekOrigin.Begin);
-            _ = fs.Read(buffer, 0, bufferSize);
-            return buffer;
+                    if (bufferSize <= 0)
+                    {
+                        return null;
+                    }
+                }
+
+                byte[] buffer = new byte[bufferSize];
+                _ = fs.Seek(offset, SeekOrigin.Begin);
+                _ = fs.Read(buffer, 0, bufferSize);
+                return buffer;
+            }
         }
 
         private void CheckDifference(string file1Path, string file2Path)
@@ -103,10 +105,12 @@ namespace BinaryDifference
                 {
                     bufferCurrent = bufferMax;
                 }
+
                 while (offsetLarge < file1Details.Length)
                 {
                     byte[] file1Buffer = FileReadBuffer(file1Path, offsetLarge, bufferCurrent);
                     byte[] file2Buffer = FileReadBuffer(file2Path, offsetLarge, bufferCurrent);
+                    bufferCurrent = file1Buffer.Length;
 
                     if (file1Buffer != null)
                     {
