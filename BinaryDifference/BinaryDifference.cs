@@ -16,6 +16,7 @@ namespace BinaryDifference
     {
         // ReSharper disable once StringLiteralTypo
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        // ReSharper disable once IdentifierTypo
         private static extern int memcmp(byte[] buffer1, byte[] buffer2, int count);
 
         private void FileBrowse(TextBox fileBox)
