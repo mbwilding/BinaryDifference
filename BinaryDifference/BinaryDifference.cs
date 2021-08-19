@@ -19,6 +19,13 @@ namespace BinaryDifference
         // ReSharper disable once IdentifierTypo
         private static extern int memcmp(byte[] buffer1, byte[] buffer2, int count);
 
+        private void ButtonToggle()
+        {
+            File1_Button.IsEnabled = !File1_Button.IsEnabled;
+            File2_Button.IsEnabled = !File2_Button.IsEnabled;
+            Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+        }
+
         private void FileBrowse(TextBox fileBox)
         {
             var fileDialog = new OpenFileDialog();
@@ -79,12 +86,8 @@ namespace BinaryDifference
 
                 // ReSharper disable once CommentTypo
                 const int bufferMax = 5 * 1024 * 1024;  // Set to 5MB, max buffer is 2GB: 0x7FFFFFC7
-                
-                int index = 0;
-                int bufferLength;
-                bool seqDiff = false;
-                long offsetLarge = 0;
 
+                int bufferLength;
                 var file1Details = new FileInfo(file1Path);
                 if (file1Details.Length < bufferMax)
                 {
@@ -95,71 +98,56 @@ namespace BinaryDifference
                     bufferLength = bufferMax;
                 }
 
-                while (offsetLarge < file1Details.Length)
+                long fileOffset = 0;
+                while (fileOffset < file1Details.Length)
                 {
-                    byte[] buffer1 = FileReadBuffer(file1Path, offsetLarge, bufferLength);
-                    byte[] buffer2 = FileReadBuffer(file2Path, offsetLarge, bufferLength);
+                    byte[] buffer1 = FileReadBuffer(file1Path, fileOffset, bufferLength);
+                    byte[] buffer2 = FileReadBuffer(file2Path, fileOffset, bufferLength);
                     bufferLength = buffer1.Length;
 
                     if (bufferLength != 0)
                     {
-                        int offsetSmall = 0;
-
                         if (memcmp(buffer1, buffer2, bufferLength) == 0)
                         {
-                            Trace.WriteLine("Buffers are equal");
-
-                            offsetLarge += bufferLength;
+                            fileOffset += bufferLength;
                         }
                         else
                         {
-                            Trace.WriteLine("Buffers are different");
-
-                            foreach (byte _ in buffer1)
+                            int index = 0;
+                            int countPrev = -1;
+                            for (int bufferOffset = 0; bufferOffset < buffer1.Length; bufferOffset++)
                             {
-                                string value1 = BitConverter.ToString(buffer1, offsetSmall, 1);
-                                string value2 = BitConverter.ToString(buffer2, offsetSmall, 1);
-
-                                if (value1 != value2)
+                                if (buffer1[bufferOffset] != buffer2[bufferOffset])
                                 {
-                                    if (!seqDiff)
-                                    {
-                                        seqDiff = true;
-                                        string box1 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value1;
-                                        string box2 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value2;
+                                    string value1 = BitConverter.ToString(buffer1, bufferOffset, 1);
+                                    string value2 = BitConverter.ToString(buffer2, bufferOffset, 1);
+                                    string box1 = StringPrepare(fileOffset, bufferOffset, value1);
+                                    string box2 = StringPrepare(fileOffset, bufferOffset, value1);
 
+                                    if (bufferOffset != countPrev + 1 || bufferOffset == 0)
+                                    {
                                         Dispatcher.Invoke(new ThreadStart(() =>
-                                        {
-                                            index = Listbox1.Items.Add(box1);
-                                            Listbox2.Items.Add(box2);
-                                        }
+                                            {
+                                                index = Listbox1.Items.Add(box1);
+                                                Listbox2.Items.Add(box2);
+                                            }
                                         ));
                                     }
                                     else
                                     {
                                         Dispatcher.Invoke(new ThreadStart(() =>
-                                        {
-                                            ItemEdit(Listbox1, index, value1);
-                                            ItemEdit(Listbox2, index, value2);
-                                        }
+                                            {
+                                                ItemEdit(Listbox1, index, value1);
+                                                ItemEdit(Listbox2, index, value2);
+                                            }
                                         ));
                                     }
-                                }
-                                else
-                                {
-                                    seqDiff = false;
-                                }
-
-                                offsetSmall++;
-
-                                if (offsetSmall == bufferLength)
-                                {
-                                    offsetLarge += offsetSmall;
+                                    countPrev = bufferOffset;
                                 }
                             }
+                            fileOffset += bufferLength;
                         }
                     }
-                    
                 }
 
                 if (Listbox1.Items.IsEmpty)
@@ -212,18 +200,16 @@ namespace BinaryDifference
             listBox.Items.Insert(index, content + append);
         }
 
-        private void ButtonToggle()
+        private string StringPrepare(long fileOffset, int bufferOffset, string value)
         {
-            File1_Button.IsEnabled = !File1_Button.IsEnabled;
-            File2_Button.IsEnabled = !File2_Button.IsEnabled;
-            Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+            return "0x" + (fileOffset + bufferOffset).ToString("X") + ": " + value;
         }
 
         private static string ElapsedTime(Stopwatch stopWatch)
         {
             stopWatch.Stop();
             var timeSpan = stopWatch.Elapsed;
-            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
+            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}:{timeSpan.Milliseconds}";
             return elapsedTime;
         }
 
