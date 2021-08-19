@@ -56,27 +56,6 @@ namespace BinaryDifference
             }
         }
 
-        private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
-        {
-            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            {
-                if (fileStream.Length - offset < bufferSize)
-                {
-                    bufferSize = (int)(fileStream.Length - offset);
-
-                    if (bufferSize <= 0)
-                    {
-                        return null;
-                    }
-                }
-
-                byte[] buffer = new byte[bufferSize];
-                _ = fileStream.Seek(offset, SeekOrigin.Begin);
-                _ = fileStream.Read(buffer, 0, bufferSize);
-                return buffer;
-            }
-        }
-
         private void CheckDifference(string file1Path, string file2Path)
         {
             new Thread(() =>
@@ -189,12 +168,24 @@ namespace BinaryDifference
             }).Start();
         }
 
-        private void ButtonToggle()
+        private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
         {
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             {
-                File1_Button.IsEnabled = !File1_Button.IsEnabled;
-                File2_Button.IsEnabled = !File2_Button.IsEnabled;
-                Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+                if (fileStream.Length - offset < bufferSize)
+                {
+                    bufferSize = (int)(fileStream.Length - offset);
+
+                    if (bufferSize <= 0)
+                    {
+                        return null;
+                    }
+                }
+
+                byte[] buffer = new byte[bufferSize];
+                _ = fileStream.Seek(offset, SeekOrigin.Begin);
+                _ = fileStream.Read(buffer, 0, bufferSize);
+                return buffer;
             }
         }
 
@@ -203,6 +194,21 @@ namespace BinaryDifference
             string content = (String)listBox.Items.GetItemAt(index);
             listBox.Items.RemoveAt(index);
             listBox.Items.Insert(index, content + append);
+        }
+
+        private void ButtonToggle()
+        {
+            File1_Button.IsEnabled = !File1_Button.IsEnabled;
+            File2_Button.IsEnabled = !File2_Button.IsEnabled;
+            Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+        }
+
+        private static string ElapsedTime(Stopwatch stopWatch)
+        {
+            stopWatch.Stop();
+            var timeSpan = stopWatch.Elapsed;
+            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
+            return elapsedTime;
         }
 
         private void SaveFile()
@@ -252,14 +258,6 @@ namespace BinaryDifference
             {
                 Status_Box.Text = "Saving failed: Check path write permissions.";
             }
-        }
-
-        private static string ElapsedTime(Stopwatch stopWatch)
-        {
-            stopWatch.Stop();
-            var timeSpan = stopWatch.Elapsed;
-            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
-            return elapsedTime;
         }
     }
 }
