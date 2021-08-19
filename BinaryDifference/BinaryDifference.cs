@@ -99,95 +99,36 @@ namespace BinaryDifference
 
                 // for loop eventually
                 Task<Tuple<List<string>, List<string>>> task1 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, 0, bufferLength));
-                Task<Tuple<List<string>, List<string>>> task2 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength, bufferLength));
-                //Task<Tuple<List<string>, List<string>>> task2 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 2, bufferLength));
-                //Task<Tuple<List<string>, List<string>>> task3 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 3, bufferLength));
-                Task.WaitAll(task1, task2/*, task3*/);
+                //Task<Tuple<List<string>, List<string>>> task2 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength, bufferLength));
+                //Task<Tuple<List<string>, List<string>>> task3 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 2, bufferLength));
+                //Task<Tuple<List<string>, List<string>>> task4 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 3, bufferLength));
+                Task.WaitAll(task1/*, task2, task3*/);
+                var finalList1 = task1.Result.Item1
+                    //.Concat(task2.Result.Item1)
+                    //.Concat(task3.Result.Item1)
+                    .ToList();
+                var finalList2 = task1.Result.Item2
+                    //.Concat(task2.Result.Item2)
+                    //.Concat(task3.Result.Item2)
+                    .ToList();
                 Debug.WriteLine("All threads complete");
+
 
                 Dispatcher.Invoke(new ThreadStart(() =>
                     {
-                        foreach (string s in task1.Result.Item1)
+                        foreach (string s in finalList1)
                         {
                             Listbox1.Items.Add(s);
                         }
-                        foreach (string s in task1.Result.Item2)
-                        {
-                            Listbox2.Items.Add(s);
-                        }
-
-                        foreach (string s in task2.Result.Item1)
-                        {
-                            Listbox1.Items.Add(s);
-                        }
-                        foreach (string s in task2.Result.Item2)
+                        foreach (string s in finalList2)
                         {
                             Listbox2.Items.Add(s);
                         }
                     }
                 ));
-                
 
-                ElapsedTime(stopWatch); // TODO TEMP
-                //task1.Result.Item1
-
-                return;
-                // when done combine all
-
-
-                while (fileOffset < file1Details.Length)
-                {
-                    byte[] buffer1 = FileReadBuffer(fileOffset, bufferLength, fileStream1);
-                    byte[] buffer2 = FileReadBuffer(fileOffset, bufferLength, fileStream2);
-                    bufferLength = buffer1.Length;
-
-                    if (bufferLength != 0)
-                    {
-                        if (memcmp(buffer1, buffer2, bufferLength) == 0)
-                        {
-                            fileOffset += bufferLength;
-                        }
-                        else
-                        {
-                            int index = 0;
-                            int countPrev = -1;
-                            for (int bufferOffset = 0; bufferOffset < buffer1.Length; bufferOffset++)
-                            {
-                                if (buffer1[bufferOffset] != buffer2[bufferOffset])
-                                {
-                                    string value1 = BitConverter.ToString(buffer1, bufferOffset, 1);
-                                    string value2 = BitConverter.ToString(buffer2, bufferOffset, 1);
-                                    string box1 = StringPrepare(fileOffset, bufferOffset, value1);
-                                    string box2 = StringPrepare(fileOffset, bufferOffset, value1);
-
-                                    if (bufferOffset != countPrev + 1 || bufferOffset == 0)
-                                    {
-                                        Dispatcher.Invoke(new ThreadStart(() =>
-                                            {
-                                                index = Listbox1.Items.Add(box1);
-                                                Listbox2.Items.Add(box2);
-                                            }
-                                        ));
-                                    }
-                                    else
-                                    {
-                                        Dispatcher.Invoke(new ThreadStart(() =>
-                                            {
-                                                ItemEdit(Listbox1, index, value1);
-                                                ItemEdit(Listbox2, index, value2);
-                                            }
-                                        ));
-                                    }
-                                    countPrev = bufferOffset;
-                                }
-                            }
-                            fileOffset += bufferLength;
-                        }
-                    }
-                }
-
-                fileStream1.Dispose();
-                fileStream2.Dispose();
+                //fileStream1.Dispose();
+                //fileStream2.Dispose();
 
                 if (Listbox1.Items.IsEmpty)
                 {
@@ -331,33 +272,33 @@ namespace BinaryDifference
             {
                 if (memcmp(buffer1, buffer2, bufferLength) == 0)
                 {
-                    //return Tuple.Create(list1, list2); //TODO
+                    return Tuple.Create(list1, list2); //TODO
                 }
 
-                int countPrev = -1;
+                int bufferOffsetPrevious = -1;
                 for (int bufferOffset = 0; bufferOffset < buffer1.Length; bufferOffset++)
                 {
                     if (buffer1[bufferOffset] != buffer2[bufferOffset])
                     {
                         string value1 = BitConverter.ToString(buffer1, bufferOffset, 1);
                         string value2 = BitConverter.ToString(buffer2, bufferOffset, 1);
-                        string box1 = StringPrepare(fileOffset, bufferOffset, value1);
-                        string box2 = StringPrepare(fileOffset, bufferOffset, value2);
 
-                        if (bufferOffset != countPrev || bufferOffset == 0)
+                        Debug.WriteLine("BufferCur: " + bufferOffset + " | BufferPrv: " + bufferOffsetPrevious);
+
+                        if (bufferOffset != bufferOffsetPrevious + 1 || bufferOffset == 0)
                         {
-                            list1.Add(box1);
-                            list2.Add(box2);
+                            list1.Add(StringPrepare(fileOffset, bufferOffset, value1));
+                            list2.Add(StringPrepare(fileOffset, bufferOffset, value2));
                         }
                         else
                         {
                             int position = list1.Count - 1;
                             string previousString = list1[position];
-                            list1[position] = previousString + box1;
+                            list1[position] = previousString + value1;
                             previousString = list2[position];
-                            list2[position] = previousString + box2;
+                            list2[position] = previousString + value2;
                         }
-                        countPrev = bufferOffset;
+                        bufferOffsetPrevious = bufferOffset;
                     }
                 }
                 fileOffset += bufferLength;
