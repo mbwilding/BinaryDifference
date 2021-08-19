@@ -69,7 +69,7 @@ namespace BinaryDifference
             }
         }
 
-        private void CheckDifference(string file1Path, string file2Path)
+        private void CheckDifference(string filePath1, string filePath2)
         {
             new Thread(() =>
             {
@@ -85,14 +85,15 @@ namespace BinaryDifference
                     }
                 ));
 
-                var file1Details = new FileInfo(file1Path);
+                var file1Details = new FileInfo(filePath1);
                 int bufferLength = SetBufferSize(file1Details.Length);
-
+                var fileStream1 = new FileStream(filePath1, FileMode.Open, FileAccess.Read);
+                var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read);
                 long fileOffset = 0;
                 while (fileOffset < file1Details.Length)
                 {
-                    byte[] buffer1 = FileReadBuffer(file1Path, fileOffset, bufferLength);
-                    byte[] buffer2 = FileReadBuffer(file2Path, fileOffset, bufferLength);
+                    byte[] buffer1 = FileReadBuffer(filePath1, fileOffset, bufferLength, fileStream1);
+                    byte[] buffer2 = FileReadBuffer(filePath2, fileOffset, bufferLength, fileStream2);
                     bufferLength = buffer1.Length;
 
                     if (bufferLength != 0)
@@ -140,6 +141,9 @@ namespace BinaryDifference
                     }
                 }
 
+                fileStream1.Dispose();
+                fileStream2.Dispose();
+
                 if (Listbox1.Items.IsEmpty)
                 {
                     Dispatcher.BeginInvoke(new ThreadStart(() =>
@@ -162,25 +166,22 @@ namespace BinaryDifference
             }).Start();
         }
 
-        private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
+        private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize, FileStream fileStream)
         {
-            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            if (fileStream.Length - offset < bufferSize)
             {
-                if (fileStream.Length - offset < bufferSize)
+                bufferSize = (int)(fileStream.Length - offset);
+
+                if (bufferSize <= 0)
                 {
-                    bufferSize = (int)(fileStream.Length - offset);
-
-                    if (bufferSize <= 0)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
-
-                byte[] buffer = new byte[bufferSize];
-                _ = fileStream.Seek(offset, SeekOrigin.Begin);
-                _ = fileStream.Read(buffer, 0, bufferSize);
-                return buffer;
             }
+
+            byte[] buffer = new byte[bufferSize];
+            _ = fileStream.Seek(offset, SeekOrigin.Begin);
+            _ = fileStream.Read(buffer, 0, bufferSize);
+            return buffer;
         }
 
         public static int SetBufferSize(long fileSize)
