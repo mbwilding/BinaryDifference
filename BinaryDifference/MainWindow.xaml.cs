@@ -1,8 +1,11 @@
-﻿using System.Windows;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace BinaryDifference
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+
     public partial class MainWindow
     {
         public MainWindow()

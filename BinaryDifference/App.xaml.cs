@@ -1,10 +1,10 @@
-﻿using System.Windows;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Windows;
 
 namespace BinaryDifference
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
+    [SuppressMessage("ReSharper", "RedundantExtendsListEntry")]
+
     public partial class App : Application
     {
     }
