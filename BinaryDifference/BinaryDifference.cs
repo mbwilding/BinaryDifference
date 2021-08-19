@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -89,11 +88,12 @@ namespace BinaryDifference
                 int bufferLength = SetBufferSize(file1Details.Length);
                 var fileStream1 = new FileStream(filePath1, FileMode.Open, FileAccess.Read);
                 var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read);
+
                 long fileOffset = 0;
                 while (fileOffset < file1Details.Length)
                 {
-                    byte[] buffer1 = FileReadBuffer(filePath1, fileOffset, bufferLength, fileStream1);
-                    byte[] buffer2 = FileReadBuffer(filePath2, fileOffset, bufferLength, fileStream2);
+                    byte[] buffer1 = FileReadBuffer(fileOffset, bufferLength, fileStream1);
+                    byte[] buffer2 = FileReadBuffer(fileOffset, bufferLength, fileStream2);
                     bufferLength = buffer1.Length;
 
                     if (bufferLength != 0)
@@ -166,7 +166,7 @@ namespace BinaryDifference
             }).Start();
         }
 
-        private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize, FileStream fileStream)
+        private static byte[] FileReadBuffer(long offset, int bufferSize, FileStream fileStream)
         {
             if (fileStream.Length - offset < bufferSize)
             {
