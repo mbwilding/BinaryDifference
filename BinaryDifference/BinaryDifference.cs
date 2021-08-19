@@ -113,7 +113,7 @@ namespace BinaryDifference
                                     string value1 = BitConverter.ToString(buffer1, bufferOffset, 1);
                                     string value2 = BitConverter.ToString(buffer2, bufferOffset, 1);
                                     string box1 = StringPrepare(fileOffset, bufferOffset, value1);
-                                    string box2 = StringPrepare(fileOffset, bufferOffset, value1);
+                                    string box2 = StringPrepare(fileOffset, bufferOffset, value2);
 
                                     if (bufferOffset != countPrev + 1 || bufferOffset == 0)
                                     {
