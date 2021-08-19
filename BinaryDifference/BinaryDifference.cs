@@ -58,11 +58,11 @@ namespace BinaryDifference
 
         private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
         {
-            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             {
-                if (fs.Length - offset < bufferSize)
+                if (fileStream.Length - offset < bufferSize)
                 {
-                    bufferSize = (int)(fs.Length - offset);
+                    bufferSize = (int)(fileStream.Length - offset);
 
                     if (bufferSize <= 0)
                     {
@@ -71,8 +71,8 @@ namespace BinaryDifference
                 }
 
                 byte[] buffer = new byte[bufferSize];
-                _ = fs.Seek(offset, SeekOrigin.Begin);
-                _ = fs.Read(buffer, 0, bufferSize);
+                _ = fileStream.Seek(offset, SeekOrigin.Begin);
+                _ = fileStream.Read(buffer, 0, bufferSize);
                 return buffer;
             }
         }
@@ -238,10 +238,10 @@ namespace BinaryDifference
 
         private void WriteFile(IEnumerable<string> list, string path)
         {
-            using (TextWriter tw = new StreamWriter(path))
+            using (TextWriter textWriter = new StreamWriter(path))
             {
-                foreach (string s in list)
-                    tw.WriteLine(s);
+                foreach (string itemText in list)
+                    textWriter.WriteLine(itemText);
             }
 
             if (File.Exists(path))
