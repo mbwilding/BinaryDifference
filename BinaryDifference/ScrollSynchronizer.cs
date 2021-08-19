@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+// ReSharper disable UnusedMember.Global
 
+// ReSharper disable once CheckNamespace
 namespace ScrollViewerSynchronization.Core
 {
 	public sealed class ScrollSynchronizer
@@ -65,17 +68,16 @@ namespace ScrollViewerSynchronization.Core
 
 		private static void OnVerticalScrollGroupChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var scrollViewer = d as ScrollViewer;
-			if (scrollViewer == null)
-				return;
+            if (d is not ScrollViewer scrollViewer)
+                return;
 
 			var newVerticalGroupName = (e.NewValue == DependencyProperty.UnsetValue ? string.Empty : (string)e.NewValue);
 			var oldVerticalGroupName = (e.NewValue == DependencyProperty.UnsetValue ? string.Empty : (string)e.OldValue);
 
-			removeFromVerticalScrollGroup(oldVerticalGroupName, scrollViewer);
-			addToVerticalScrollGroup(newVerticalGroupName, scrollViewer);
+			RemoveFromVerticalScrollGroup(oldVerticalGroupName, scrollViewer);
+			AddToVerticalScrollGroup(newVerticalGroupName, scrollViewer);
 
-			var currentScrollSyncValue = readSyncTypeDPValue(d, ScrollSyncTypeProperty);
+			var currentScrollSyncValue = ReadSyncTypeDpValue(d, ScrollSyncTypeProperty);
 			if (currentScrollSyncValue == ScrollSyncType.None)
 				d.SetValue(ScrollSyncTypeProperty, ScrollSyncType.Vertical);
 			else if (currentScrollSyncValue == ScrollSyncType.Horizontal)
@@ -84,17 +86,16 @@ namespace ScrollViewerSynchronization.Core
 
 		private static void OnHorizontalScrollGroupChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var scrollViewer = d as ScrollViewer;
-			if (scrollViewer == null)
-				return;
+            if (d is not ScrollViewer scrollViewer)
+                return;
 
 			var newHorizontalGroupName = (e.NewValue == DependencyProperty.UnsetValue ? string.Empty : (string)e.NewValue);
 			var oldHorizontalGroupName = (e.NewValue == DependencyProperty.UnsetValue ? string.Empty : (string)e.OldValue);
 
-			removeFromHorizontalScrollGroup(oldHorizontalGroupName, scrollViewer);
-			addToHorizontalScrollGroup(newHorizontalGroupName, scrollViewer);
+			RemoveFromHorizontalScrollGroup(oldHorizontalGroupName, scrollViewer);
+			AddToHorizontalScrollGroup(newHorizontalGroupName, scrollViewer);
 
-			var currentScrollSyncValue = readSyncTypeDPValue(d, ScrollSyncTypeProperty);
+			var currentScrollSyncValue = ReadSyncTypeDpValue(d, ScrollSyncTypeProperty);
 			if (currentScrollSyncValue == ScrollSyncType.None)
 				d.SetValue(ScrollSyncTypeProperty, ScrollSyncType.Horizontal);
 			else if (currentScrollSyncValue == ScrollSyncType.Vertical)
@@ -103,67 +104,69 @@ namespace ScrollViewerSynchronization.Core
 
 		private static void OnScrollSyncTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var scrollViewer = d as ScrollViewer;
-			if (scrollViewer == null)
-				return;
+            if (d is not ScrollViewer scrollViewer)
+                return;
 
-			var verticalGroupName = readStringDPValue(d, VerticalScrollGroupProperty);
-			var horizontalGroupName = readStringDPValue(d, HorizontalScrollGroupProperty);
+			var verticalGroupName = ReadStringDpValue(d, VerticalScrollGroupProperty);
+			var horizontalGroupName = ReadStringDpValue(d, HorizontalScrollGroupProperty);
 
 			var scrollSyncType = ScrollSyncType.None;
 			try
 			{
 				scrollSyncType = (ScrollSyncType)e.NewValue;
 			}
-			catch { }
+            catch
+            {
+                // ignored
+            }
 
-			switch (scrollSyncType)
+            switch (scrollSyncType)
 			{
 				case ScrollSyncType.None:
-					if (!registeredScrollViewers.ContainsKey(scrollViewer))
+					if (!RegisteredScrollViewers.ContainsKey(scrollViewer))
 						return;
 
-					removeFromVerticalScrollGroup(verticalGroupName, scrollViewer);
-					removeFromHorizontalScrollGroup(horizontalGroupName, scrollViewer);
-					registeredScrollViewers.Remove(scrollViewer);
+					RemoveFromVerticalScrollGroup(verticalGroupName, scrollViewer);
+					RemoveFromHorizontalScrollGroup(horizontalGroupName, scrollViewer);
+					RegisteredScrollViewers.Remove(scrollViewer);
 
 					break;
 				case ScrollSyncType.Horizontal:
-					removeFromVerticalScrollGroup(verticalGroupName, scrollViewer);
-					addToHorizontalScrollGroup(horizontalGroupName, scrollViewer);
+					RemoveFromVerticalScrollGroup(verticalGroupName, scrollViewer);
+					AddToHorizontalScrollGroup(horizontalGroupName, scrollViewer);
 
-					if (registeredScrollViewers.ContainsKey(scrollViewer))
-						registeredScrollViewers[scrollViewer] = ScrollSyncType.Horizontal;
+					if (RegisteredScrollViewers.ContainsKey(scrollViewer))
+						RegisteredScrollViewers[scrollViewer] = ScrollSyncType.Horizontal;
 					else
-						registeredScrollViewers.Add(scrollViewer, ScrollSyncType.Horizontal);
+						RegisteredScrollViewers.Add(scrollViewer, ScrollSyncType.Horizontal);
 
 					break;
 				case ScrollSyncType.Vertical:
-					removeFromHorizontalScrollGroup(horizontalGroupName, scrollViewer);
-					addToVerticalScrollGroup(verticalGroupName, scrollViewer);
+					RemoveFromHorizontalScrollGroup(horizontalGroupName, scrollViewer);
+					AddToVerticalScrollGroup(verticalGroupName, scrollViewer);
 
-					if (registeredScrollViewers.ContainsKey(scrollViewer))
-						registeredScrollViewers[scrollViewer] = ScrollSyncType.Vertical;
+					if (RegisteredScrollViewers.ContainsKey(scrollViewer))
+						RegisteredScrollViewers[scrollViewer] = ScrollSyncType.Vertical;
 					else
-						registeredScrollViewers.Add(scrollViewer, ScrollSyncType.Vertical);
+						RegisteredScrollViewers.Add(scrollViewer, ScrollSyncType.Vertical);
 
 					break;
 				case ScrollSyncType.Both:
-					if (registeredScrollViewers.ContainsKey(scrollViewer))
+					if (RegisteredScrollViewers.ContainsKey(scrollViewer))
 					{
-						if (registeredScrollViewers[scrollViewer] == ScrollSyncType.Horizontal)
-							addToVerticalScrollGroup(verticalGroupName, scrollViewer);
-						else if (registeredScrollViewers[scrollViewer] == ScrollSyncType.Vertical)
-							addToHorizontalScrollGroup(horizontalGroupName, scrollViewer);
+						if (RegisteredScrollViewers[scrollViewer] == ScrollSyncType.Horizontal)
+							AddToVerticalScrollGroup(verticalGroupName, scrollViewer);
+						else if (RegisteredScrollViewers[scrollViewer] == ScrollSyncType.Vertical)
+							AddToHorizontalScrollGroup(horizontalGroupName, scrollViewer);
 
-						registeredScrollViewers[scrollViewer] = ScrollSyncType.Both;
+						RegisteredScrollViewers[scrollViewer] = ScrollSyncType.Both;
 					}
 					else
 					{
-						addToHorizontalScrollGroup(horizontalGroupName, scrollViewer);
-						addToVerticalScrollGroup(verticalGroupName, scrollViewer);
+						AddToHorizontalScrollGroup(horizontalGroupName, scrollViewer);
+						AddToVerticalScrollGroup(verticalGroupName, scrollViewer);
 
-						registeredScrollViewers.Add(scrollViewer, ScrollSyncType.Both);
+						RegisteredScrollViewers.Add(scrollViewer, ScrollSyncType.Both);
 					}
 
 					break;
@@ -176,75 +179,75 @@ namespace ScrollViewerSynchronization.Core
 
 		#region Variable(s)
 
-		private static readonly Dictionary<string, OffSetContainer> verticalScrollGroups = new Dictionary<string, OffSetContainer>();
-		private static readonly Dictionary<string, OffSetContainer> horizontalScrollGroups = new Dictionary<string, OffSetContainer>();
-		private static readonly Dictionary<ScrollViewer, ScrollSyncType> registeredScrollViewers = new Dictionary<ScrollViewer, ScrollSyncType>();
+		private static readonly Dictionary<string, OffSetContainer> VerticalScrollGroups = new();
+		private static readonly Dictionary<string, OffSetContainer> HorizontalScrollGroups = new();
+		private static readonly Dictionary<ScrollViewer, ScrollSyncType> RegisteredScrollViewers = new();
 
 		#endregion
 
 		#region Method(s)
 
-		private static void removeFromVerticalScrollGroup(string verticalGroupName, ScrollViewer scrollViewer)
+		private static void RemoveFromVerticalScrollGroup(string verticalGroupName, ScrollViewer scrollViewer)
 		{
-			if (verticalScrollGroups.ContainsKey(verticalGroupName))
+			if (VerticalScrollGroups.ContainsKey(verticalGroupName))
 			{
-				verticalScrollGroups[verticalGroupName].ScrollViewers.Remove(scrollViewer);
-				if (verticalScrollGroups[verticalGroupName].ScrollViewers.Count == 0)
-					verticalScrollGroups.Remove(verticalGroupName);
+				VerticalScrollGroups[verticalGroupName].ScrollViewers.Remove(scrollViewer);
+				if (VerticalScrollGroups[verticalGroupName].ScrollViewers.Count == 0)
+					VerticalScrollGroups.Remove(verticalGroupName);
 			}
 
 			scrollViewer.ScrollChanged -= ScrollViewer_VerticalScrollChanged;
 		}
 
-		private static void addToVerticalScrollGroup(string verticalGroupName, ScrollViewer scrollViewer)
+		private static void AddToVerticalScrollGroup(string verticalGroupName, ScrollViewer scrollViewer)
 		{
-			if (verticalScrollGroups.ContainsKey(verticalGroupName))
+			if (VerticalScrollGroups.ContainsKey(verticalGroupName))
 			{
-				scrollViewer.ScrollToVerticalOffset(verticalScrollGroups[verticalGroupName].Offset);
-				verticalScrollGroups[verticalGroupName].ScrollViewers.Add(scrollViewer);
+				scrollViewer.ScrollToVerticalOffset(VerticalScrollGroups[verticalGroupName].Offset);
+				VerticalScrollGroups[verticalGroupName].ScrollViewers.Add(scrollViewer);
 			}
 			else
 			{
-				verticalScrollGroups.Add(verticalGroupName, new OffSetContainer { ScrollViewers = new List<ScrollViewer> { scrollViewer }, Offset = scrollViewer.VerticalOffset });
+				VerticalScrollGroups.Add(verticalGroupName, new OffSetContainer { ScrollViewers = new List<ScrollViewer> { scrollViewer }, Offset = scrollViewer.VerticalOffset });
 			}
 
 			scrollViewer.ScrollChanged += ScrollViewer_VerticalScrollChanged;
 		}
 
-		private static void removeFromHorizontalScrollGroup(string horizontalGroupName, ScrollViewer scrollViewer)
+		private static void RemoveFromHorizontalScrollGroup(string horizontalGroupName, ScrollViewer scrollViewer)
 		{
-			if (horizontalScrollGroups.ContainsKey(horizontalGroupName))
+			if (HorizontalScrollGroups.ContainsKey(horizontalGroupName))
 			{
-				horizontalScrollGroups[horizontalGroupName].ScrollViewers.Remove(scrollViewer);
-				if (horizontalScrollGroups[horizontalGroupName].ScrollViewers.Count == 0)
-					horizontalScrollGroups.Remove(horizontalGroupName);
+				HorizontalScrollGroups[horizontalGroupName].ScrollViewers.Remove(scrollViewer);
+				if (HorizontalScrollGroups[horizontalGroupName].ScrollViewers.Count == 0)
+					HorizontalScrollGroups.Remove(horizontalGroupName);
 			}
 
 			scrollViewer.ScrollChanged -= ScrollViewer_HorizontalScrollChanged;
 		}
 
-		private static void addToHorizontalScrollGroup(string horizontalGroupName, ScrollViewer scrollViewer)
+		private static void AddToHorizontalScrollGroup(string horizontalGroupName, ScrollViewer scrollViewer)
 		{
-			if (horizontalScrollGroups.ContainsKey(horizontalGroupName))
+			if (HorizontalScrollGroups.ContainsKey(horizontalGroupName))
 			{
-				scrollViewer.ScrollToHorizontalOffset(horizontalScrollGroups[horizontalGroupName].Offset);
-				horizontalScrollGroups[horizontalGroupName].ScrollViewers.Add(scrollViewer);
+				scrollViewer.ScrollToHorizontalOffset(HorizontalScrollGroups[horizontalGroupName].Offset);
+				HorizontalScrollGroups[horizontalGroupName].ScrollViewers.Add(scrollViewer);
 			}
 			else
 			{
-				horizontalScrollGroups.Add(horizontalGroupName, new OffSetContainer { ScrollViewers = new List<ScrollViewer> { scrollViewer }, Offset = scrollViewer.HorizontalOffset });
+				HorizontalScrollGroups.Add(horizontalGroupName, new OffSetContainer { ScrollViewers = new List<ScrollViewer> { scrollViewer }, Offset = scrollViewer.HorizontalOffset });
 			}
 
 			scrollViewer.ScrollChanged += ScrollViewer_HorizontalScrollChanged;
 		}
 
-		private static string readStringDPValue(DependencyObject d, DependencyProperty dp)
+		private static string ReadStringDpValue(DependencyObject d, DependencyProperty dp)
 		{
 			var value = d.ReadLocalValue(dp);
 			return (value == DependencyProperty.UnsetValue ? string.Empty : value.ToString());
 		}
 
-		private static ScrollSyncType readSyncTypeDPValue(DependencyObject d, DependencyProperty dp)
+		private static ScrollSyncType ReadSyncTypeDpValue(DependencyObject d, DependencyProperty dp)
 		{
 			var value = d.ReadLocalValue(dp);
 			return (value == DependencyProperty.UnsetValue ? ScrollSyncType.None : (ScrollSyncType)value);
@@ -256,22 +259,21 @@ namespace ScrollViewerSynchronization.Core
 
 		private static void ScrollViewer_VerticalScrollChanged(object sender, ScrollChangedEventArgs e)
 		{
-			var changedScrollViewer = sender as ScrollViewer;
-			if (changedScrollViewer == null)
+            if (sender is not ScrollViewer changedScrollViewer)
+                return;
+
+            if (e.VerticalChange == 0)
 				return;
 
-			if (e.VerticalChange == 0)
+			var verticalScrollGroup = ReadStringDpValue(changedScrollViewer, VerticalScrollGroupProperty);
+			if (!VerticalScrollGroups.ContainsKey(verticalScrollGroup))
 				return;
 
-			var verticalScrollGroup = readStringDPValue(sender as DependencyObject, VerticalScrollGroupProperty);
-			if (!verticalScrollGroups.ContainsKey(verticalScrollGroup))
-				return;
+			VerticalScrollGroups[verticalScrollGroup].Offset = changedScrollViewer.VerticalOffset;
 
-			verticalScrollGroups[verticalScrollGroup].Offset = changedScrollViewer.VerticalOffset;
-
-			foreach (var scrollViewer in verticalScrollGroups[verticalScrollGroup].ScrollViewers)
+			foreach (var scrollViewer in VerticalScrollGroups[verticalScrollGroup].ScrollViewers)
 			{
-				if (scrollViewer.VerticalOffset == changedScrollViewer.VerticalOffset)
+				if (Math.Abs(scrollViewer.VerticalOffset - changedScrollViewer.VerticalOffset) < 0)
 					continue;
 
 				scrollViewer.ScrollToVerticalOffset(changedScrollViewer.VerticalOffset);
@@ -280,22 +282,21 @@ namespace ScrollViewerSynchronization.Core
 
 		private static void ScrollViewer_HorizontalScrollChanged(object sender, ScrollChangedEventArgs e)
 		{
-			var changedScrollViewer = sender as ScrollViewer;
-			if (changedScrollViewer == null)
+            if (sender is not ScrollViewer changedScrollViewer)
+                return;
+
+            if (e.HorizontalChange == 0)
 				return;
 
-			if (e.HorizontalChange == 0)
+			var horizontalScrollGroup = ReadStringDpValue(changedScrollViewer, HorizontalScrollGroupProperty);
+			if (!HorizontalScrollGroups.ContainsKey(horizontalScrollGroup))
 				return;
 
-			var horizontalScrollGroup = readStringDPValue(sender as DependencyObject, HorizontalScrollGroupProperty);
-			if (!horizontalScrollGroups.ContainsKey(horizontalScrollGroup))
-				return;
+			HorizontalScrollGroups[horizontalScrollGroup].Offset = changedScrollViewer.HorizontalOffset;
 
-			horizontalScrollGroups[horizontalScrollGroup].Offset = changedScrollViewer.HorizontalOffset;
-
-			foreach (var scrollViewer in horizontalScrollGroups[horizontalScrollGroup].ScrollViewers)
+			foreach (var scrollViewer in HorizontalScrollGroups[horizontalScrollGroup].ScrollViewers)
 			{
-				if (scrollViewer.HorizontalOffset == changedScrollViewer.HorizontalOffset)
+				if (Math.Abs(scrollViewer.HorizontalOffset - changedScrollViewer.HorizontalOffset) < 0)
 					continue;
 
 				scrollViewer.ScrollToHorizontalOffset(changedScrollViewer.HorizontalOffset);
@@ -309,7 +310,7 @@ namespace ScrollViewerSynchronization.Core
 		private class OffSetContainer
 		{
 			public double Offset { get; set; }
-			public List<ScrollViewer> ScrollViewers { get; set; }
+			public List<ScrollViewer> ScrollViewers { get; init; }
 		}
 
 		#endregion
