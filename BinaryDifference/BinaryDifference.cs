@@ -14,14 +14,14 @@ namespace BinaryDifference
 
     public partial class MainWindow
     {
-        private void FileBrowse(TextBox box)
+        private void FileBrowse(TextBox fileBox)
         {
             var fileDialog = new OpenFileDialog();
             if (fileDialog.ShowDialog() == true)
             {
-                box.Text = fileDialog.SafeFileName;
-                box.Uid = fileDialog.FileName;
-                Status_Box.Text = box.Uid + " loaded.";
+                fileBox.Text = fileDialog.SafeFileName;
+                fileBox.Uid = fileDialog.FileName;
+                Status_Box.Text = fileBox.Uid + " loaded.";
                 Save_Button.IsEnabled = false;
 
                 Dispatcher.Invoke(new ThreadStart(() =>
