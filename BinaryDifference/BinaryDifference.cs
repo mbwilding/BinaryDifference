@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,9 +12,12 @@ using Microsoft.Win32;
 namespace BinaryDifference
 {
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
-
     public partial class MainWindow
     {
+        // ReSharper disable once StringLiteralTypo
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int memcmp(byte[] buffer1, byte[] buffer2, int count);
+
         private void FileBrowse(TextBox fileBox)
         {
             var fileDialog = new OpenFileDialog();
@@ -100,46 +104,57 @@ namespace BinaryDifference
                     {
                         int offsetSmall = 0;
 
-                        foreach (byte _ in buffer1)
+                        if (memcmp(buffer1, buffer2, bufferLength) == 0)
                         {
-                            string value1 = BitConverter.ToString(buffer1, offsetSmall, 1);
-                            string value2 = BitConverter.ToString(buffer2, offsetSmall, 1);
+                            Trace.WriteLine("Buffers are equal");
 
-                            if (value1 != value2)
+                            offsetLarge += bufferLength;
+                        }
+                        else
+                        {
+                            Trace.WriteLine("Buffers are different");
+
+                            foreach (byte _ in buffer1)
                             {
-                                if (!seqDiff)
+                                string value1 = BitConverter.ToString(buffer1, offsetSmall, 1);
+                                string value2 = BitConverter.ToString(buffer2, offsetSmall, 1);
+
+                                if (value1 != value2)
                                 {
-                                    seqDiff = true;
-                                    string box1 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value1;
-                                    string box2 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value2;
-                                    
-                                    Dispatcher.Invoke(new ThreadStart(() =>
+                                    if (!seqDiff)
+                                    {
+                                        seqDiff = true;
+                                        string box1 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value1;
+                                        string box2 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value2;
+
+                                        Dispatcher.Invoke(new ThreadStart(() =>
                                         {
                                             index = Listbox1.Items.Add(box1);
                                             Listbox2.Items.Add(box2);
                                         }
-                                    ));
-                                }
-                                else
-                                {
-                                    Dispatcher.Invoke(new ThreadStart(() =>
+                                        ));
+                                    }
+                                    else
+                                    {
+                                        Dispatcher.Invoke(new ThreadStart(() =>
                                         {
                                             ItemEdit(Listbox1, index, value1);
                                             ItemEdit(Listbox2, index, value2);
                                         }
-                                    ));
+                                        ));
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                seqDiff = false;
-                            }
+                                else
+                                {
+                                    seqDiff = false;
+                                }
 
-                            offsetSmall++;
+                                offsetSmall++;
 
-                            if (offsetSmall == bufferLength)
-                            {
-                                offsetLarge += offsetSmall;
+                                if (offsetSmall == bufferLength)
+                                {
+                                    offsetLarge += offsetSmall;
+                                }
                             }
                         }
                     }
