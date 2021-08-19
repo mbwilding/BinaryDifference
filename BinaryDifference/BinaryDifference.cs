@@ -41,6 +41,8 @@ namespace BinaryDifference
 
         private void FileValidation()
         {
+            Save_Button.IsEnabled = false;
+
             var file1 = new FileInfo(File1_Box.Uid);
             var file2 = new FileInfo(File2_Box.Uid);
 
@@ -52,7 +54,6 @@ namespace BinaryDifference
             {
                 Status_Box.Text = "Files cannot be different sizes.";
             }
-            Save_Button.IsEnabled = false;
         }
 
         private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
