@@ -112,7 +112,7 @@ namespace BinaryDifference
                     byte[] file2Buffer = FileReadBuffer(file2Path, offsetLarge, bufferCurrent);
                     bufferCurrent = file1Buffer.Length;
 
-                    if (file1Buffer != null)
+                    if (bufferCurrent != 0)
                     {
                         int offsetSmall = 0;
 
