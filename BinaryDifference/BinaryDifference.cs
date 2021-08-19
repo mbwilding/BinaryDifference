@@ -102,8 +102,8 @@ namespace BinaryDifference
 
                         foreach (byte _ in buffer1)
                         {
-                            string value1 = BitConverter.ToString(buffer1, offsetSmall, 1).Replace("-", string.Empty);
-                            string value2 = BitConverter.ToString(buffer2, offsetSmall, 1).Replace("-", string.Empty);
+                            string value1 = BitConverter.ToString(buffer1, offsetSmall, 1);
+                            string value2 = BitConverter.ToString(buffer2, offsetSmall, 1);
 
                             if (value1 != value2)
                             {
