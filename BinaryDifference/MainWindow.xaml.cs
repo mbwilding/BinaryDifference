@@ -12,12 +12,12 @@ namespace BinaryDifference
 
         private void File1_Button_Click(object sender, RoutedEventArgs e)
         {
-            FileBrowse(CompareFile1_Box);
+            FileBrowse(File1_Box);
         }
 
         private void File2_Button_Click(object sender, RoutedEventArgs e)
         {
-            FileBrowse(CompareFile2_Box);
+            FileBrowse(File2_Box);
         }
 
         private void Compare_Button_Click(object sender, RoutedEventArgs e)

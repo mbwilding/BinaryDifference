@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
 
@@ -20,36 +21,38 @@ namespace BinaryDifference
             {
                 box.Text = fileDialog.SafeFileName;
                 box.Uid = fileDialog.FileName;
-                CompareStatus_Box.Text = box.Uid + " loaded.";
+                Status_Box.Text = box.Uid + " loaded.";
                 Save_Button.IsEnabled = false;
 
                 Dispatcher.Invoke(new ThreadStart(() =>
                     {
-                        Compare_Listbox1.Items.Clear();
-                        Compare_Listbox2.Items.Clear();
+                        Listbox1.Items.Clear();
+                        Listbox2.Items.Clear();
                     }
                 ));
             }
 
-            if (CompareFile1_Box.Uid != string.Empty && CompareFile2_Box.Uid != string.Empty)
+            if (File1_Box.Uid != string.Empty && File2_Box.Uid != string.Empty)
             {
                 Compare_Button.IsEnabled = true;
+                Save_Button.IsEnabled = false;
             }
         }
 
         private void FileValidation()
         {
-            var file1 = new FileInfo(CompareFile1_Box.Uid);
-            var file2 = new FileInfo(CompareFile2_Box.Uid);
+            var file1 = new FileInfo(File1_Box.Uid);
+            var file2 = new FileInfo(File2_Box.Uid);
 
             if (file1.Length == file2.Length)
             {
-                CheckDifference(CompareFile1_Box.Uid, CompareFile2_Box.Uid);
+                CheckDifference(File1_Box.Uid, File2_Box.Uid);
             }
             else
             {
-                CompareStatus_Box.Text = "Files cannot be different sizes.";
+                Status_Box.Text = "Files cannot be different sizes.";
             }
+            Save_Button.IsEnabled = false;
         }
 
         private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
@@ -83,56 +86,57 @@ namespace BinaryDifference
                 Dispatcher.Invoke(new ThreadStart(() =>
                     {
                         ButtonToggle();
-                        Compare_Listbox1.Items.Clear();
-                        Compare_Listbox2.Items.Clear();
-                        CompareStatus_Box.Text = "Processing...";
+                        Listbox1.Items.Clear();
+                        Listbox2.Items.Clear();
+                        Status_Box.Text = "Processing...";
                     }
                 ));
 
                 // ReSharper disable once CommentTypo
                 const int bufferMax = 5 * 1024 * 1024;  // Set to 5MB, max buffer is 2GB: 0x7FFFFFC7
-                int bufferCurrent;
-                long offsetLarge = 0;
+                
                 int index = 0;
-                bool sequentialDiff = false;
+                int bufferLength;
+                bool seqDiff = false;
+                long offsetLarge = 0;
 
                 var file1Details = new FileInfo(file1Path);
                 if (file1Details.Length < bufferMax)
                 {
-                    bufferCurrent = (int)file1Details.Length;
+                    bufferLength = (int)file1Details.Length;
                 }
                 else
                 {
-                    bufferCurrent = bufferMax;
+                    bufferLength = bufferMax;
                 }
 
                 while (offsetLarge < file1Details.Length)
                 {
-                    byte[] file1Buffer = FileReadBuffer(file1Path, offsetLarge, bufferCurrent);
-                    byte[] file2Buffer = FileReadBuffer(file2Path, offsetLarge, bufferCurrent);
-                    bufferCurrent = file1Buffer.Length;
+                    byte[] buffer1 = FileReadBuffer(file1Path, offsetLarge, bufferLength);
+                    byte[] buffer2 = FileReadBuffer(file2Path, offsetLarge, bufferLength);
+                    bufferLength = buffer1.Length;
 
-                    if (bufferCurrent != 0)
+                    if (bufferLength != 0)
                     {
                         int offsetSmall = 0;
 
-                        foreach (byte _ in file1Buffer)
+                        foreach (byte _ in buffer1)
                         {
-                            string currentValue1 = BitConverter.ToString(file1Buffer, offsetSmall, 1).Replace("-", string.Empty);
-                            string currentValue2 = BitConverter.ToString(file2Buffer, offsetSmall, 1).Replace("-", string.Empty);
+                            string value1 = BitConverter.ToString(buffer1, offsetSmall, 1).Replace("-", string.Empty);
+                            string value2 = BitConverter.ToString(buffer2, offsetSmall, 1).Replace("-", string.Empty);
 
-                            if (currentValue1 != currentValue2)
+                            if (value1 != value2)
                             {
-                                if (!sequentialDiff)
+                                if (!seqDiff)
                                 {
-                                    sequentialDiff = true;
-                                    string box1 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + currentValue1;
-                                    string box2 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + currentValue2;
+                                    seqDiff = true;
+                                    string box1 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value1;
+                                    string box2 = "0x" + (offsetSmall + offsetLarge).ToString("X") + ": " + value2;
                                     
                                     Dispatcher.Invoke(new ThreadStart(() =>
                                         {
-                                            index = Compare_Listbox1.Items.Add(box1);
-                                            Compare_Listbox2.Items.Add(box2);
+                                            index = Listbox1.Items.Add(box1);
+                                            Listbox2.Items.Add(box2);
                                         }
                                     ));
                                 }
@@ -140,20 +144,20 @@ namespace BinaryDifference
                                 {
                                     Dispatcher.Invoke(new ThreadStart(() =>
                                         {
-                                            ItemEdit(Compare_Listbox1, index, currentValue1);
-                                            ItemEdit(Compare_Listbox2, index, currentValue2);
+                                            ItemEdit(Listbox1, index, value1);
+                                            ItemEdit(Listbox2, index, value2);
                                         }
                                     ));
                                 }
                             }
                             else
                             {
-                                sequentialDiff = false;
+                                seqDiff = false;
                             }
 
                             offsetSmall++;
 
-                            if (offsetSmall == bufferCurrent)
+                            if (offsetSmall == bufferLength)
                             {
                                 offsetLarge += offsetSmall;
                             }
@@ -162,12 +166,12 @@ namespace BinaryDifference
                     
                 }
 
-                if (Compare_Listbox1.Items.IsEmpty)
+                if (Listbox1.Items.IsEmpty)
                 {
                     Dispatcher.BeginInvoke(new ThreadStart(() =>
                         {
                             ButtonToggle();
-                            CompareStatus_Box.Text = "Files are identical. Time elapsed: " + ElapsedTime(stopWatch);
+                            Status_Box.Text = "Files are identical. Time elapsed: " + ElapsedTime(stopWatch);
                         }
                     ));
                 }
@@ -177,7 +181,7 @@ namespace BinaryDifference
                         {
                             ButtonToggle();
                             Save_Button.IsEnabled = true;
-                            CompareStatus_Box.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
+                            Status_Box.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
                         }
                     ));
                 }
@@ -193,11 +197,11 @@ namespace BinaryDifference
             }
         }
 
-        private static void ItemEdit(ListBox box, int index, string text)
+        private static void ItemEdit(ItemsControl listBox, int index, string append)
         {
-            string content = (String)box.Items.GetItemAt(index);
-            box.Items.RemoveAt(index);
-            box.Items.Insert(index, content + text);
+            string content = (String)listBox.Items.GetItemAt(index);
+            listBox.Items.RemoveAt(index);
+            listBox.Items.Insert(index, content + append);
         }
 
         private void SaveFile()
@@ -212,48 +216,48 @@ namespace BinaryDifference
             if (fileDialog.ShowDialog() == true)
             {
                 var list = new List<string>();
-                ListCreate(list, CompareFile1_Box, Compare_Listbox1);
-                ListCreate(list, CompareFile2_Box, Compare_Listbox2);
+                ListCreate(list, File1_Box, Listbox1);
+                ListCreate(list, File2_Box, Listbox2);
                 WriteFile(list, fileDialog.FileName);
             }
         }
 
-        private static void ListCreate(List<string> list, TextBox box, ListBox listBox)
+        private static void ListCreate(ICollection<string> list, UIElement fileBox, ItemsControl listBox)
         {
-            list.Add(box.Uid);
+            list.Add(fileBox.Uid);
             list.Add("-------------");
             list.Add(String.Empty);
-            foreach (string s in listBox.Items)
+            foreach (string item in listBox.Items)
             {
-                list.Add(s);
+                list.Add(item);
             }
 
             list.Add(String.Empty);
         }
 
-        private void WriteFile(List<string> list, string path)
+        private void WriteFile(IEnumerable<string> list, string path)
         {
             using (TextWriter tw = new StreamWriter(path))
             {
-                foreach (String s in list)
+                foreach (string s in list)
                     tw.WriteLine(s);
             }
 
             if (File.Exists(path))
             {
-                CompareStatus_Box.Text = "Saved file: " + path;
+                Status_Box.Text = "Saved file: " + path;
             }
             else
             {
-                CompareStatus_Box.Text = "Saving failed: Check path write permissions.";
+                Status_Box.Text = "Saving failed: Check path write permissions.";
             }
         }
 
         private static string ElapsedTime(Stopwatch stopWatch)
         {
             stopWatch.Stop();
-            TimeSpan ts = stopWatch.Elapsed;
-            string elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}";
+            var timeSpan = stopWatch.Elapsed;
+            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
             return elapsedTime;
         }
     }
