@@ -99,9 +99,10 @@ namespace BinaryDifference
 
                 // for loop eventually
                 Task<Tuple<List<string>, List<string>>> task1 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, 0, bufferLength));
+                Task<Tuple<List<string>, List<string>>> task2 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength, bufferLength));
                 //Task<Tuple<List<string>, List<string>>> task2 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 2, bufferLength));
                 //Task<Tuple<List<string>, List<string>>> task3 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 3, bufferLength));
-                Task.WaitAll(task1/*, task2, task3*/);
+                Task.WaitAll(task1, task2/*, task3*/);
                 Debug.WriteLine("All threads complete");
 
                 Dispatcher.Invoke(new ThreadStart(() =>
@@ -111,6 +112,15 @@ namespace BinaryDifference
                             Listbox1.Items.Add(s);
                         }
                         foreach (string s in task1.Result.Item2)
+                        {
+                            Listbox2.Items.Add(s);
+                        }
+
+                        foreach (string s in task2.Result.Item1)
+                        {
+                            Listbox1.Items.Add(s);
+                        }
+                        foreach (string s in task2.Result.Item2)
                         {
                             Listbox2.Items.Add(s);
                         }
@@ -321,7 +331,7 @@ namespace BinaryDifference
             {
                 if (memcmp(buffer1, buffer2, bufferLength) == 0)
                 {
-                    return Tuple.Create(list1, list2);
+                    //return Tuple.Create(list1, list2); //TODO
                 }
 
                 int countPrev = -1;
