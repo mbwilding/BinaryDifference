@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -84,19 +85,8 @@ namespace BinaryDifference
                     }
                 ));
 
-                // ReSharper disable once CommentTypo
-                const int bufferMax = 5 * 1024 * 1024;  // Set to 5MB, max buffer is 2GB: 0x7FFFFFC7
-
-                int bufferLength;
                 var file1Details = new FileInfo(file1Path);
-                if (file1Details.Length < bufferMax)
-                {
-                    bufferLength = (int)file1Details.Length;
-                }
-                else
-                {
-                    bufferLength = bufferMax;
-                }
+                int bufferLength = SetBufferSize(file1Details.Length);
 
                 long fileOffset = 0;
                 while (fileOffset < file1Details.Length)
@@ -191,6 +181,23 @@ namespace BinaryDifference
                 _ = fileStream.Read(buffer, 0, bufferSize);
                 return buffer;
             }
+        }
+
+        public static int SetBufferSize(long fileSize)
+        {
+            const int bufferThreshold = 5 * 1024 * 1024;
+            const int bufferMax = 2000 * 1024 * 1024;
+            const int bufferDivisions = 60;
+
+            if (fileSize / bufferDivisions > bufferMax)
+            {
+                return bufferMax;
+            }
+            if (fileSize > bufferThreshold * bufferDivisions)
+            {
+                return (int)fileSize / bufferDivisions;
+            }
+            return (int)fileSize;
         }
 
         private static void ItemEdit(ItemsControl listBox, int index, string append)
