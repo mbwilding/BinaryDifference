@@ -39,8 +39,8 @@ namespace BinaryDifference
 
         private void FileValidation()
         {
-            FileInfo file1 = new FileInfo(CompareFile1_Box.Uid);
-            FileInfo file2 = new FileInfo(CompareFile2_Box.Uid);
+            var file1 = new FileInfo(CompareFile1_Box.Uid);
+            var file2 = new FileInfo(CompareFile2_Box.Uid);
 
             if (file1.Length == file2.Length)
             {
@@ -54,7 +54,7 @@ namespace BinaryDifference
 
         private static byte[] FileReadBuffer(string filePath, long offset, int bufferSize)
         {
-            using FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             {
                 if (fs.Length - offset < bufferSize)
                 {
@@ -77,7 +77,7 @@ namespace BinaryDifference
         {
             new Thread(() =>
             {
-                Stopwatch stopWatch = new Stopwatch();
+                var stopWatch = new Stopwatch();
                 stopWatch.Start();
 
                 Dispatcher.Invoke(new ThreadStart(() =>
@@ -96,7 +96,7 @@ namespace BinaryDifference
                 int index = 0;
                 bool sequentialDiff = false;
 
-                FileInfo file1Details = new FileInfo(file1Path);
+                var file1Details = new FileInfo(file1Path);
                 if (file1Details.Length < bufferMax)
                 {
                     bufferCurrent = (int)file1Details.Length;
@@ -211,7 +211,7 @@ namespace BinaryDifference
 
             if (fileDialog.ShowDialog() == true)
             {
-                List<string> list = new List<string>();
+                var list = new List<string>();
                 ListCreate(list, CompareFile1_Box, Compare_Listbox1);
                 ListCreate(list, CompareFile2_Box, Compare_Listbox2);
                 WriteFile(list, fileDialog.FileName);
@@ -249,7 +249,7 @@ namespace BinaryDifference
             }
         }
 
-        private string ElapsedTime(Stopwatch stopWatch)
+        private static string ElapsedTime(Stopwatch stopWatch)
         {
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;
