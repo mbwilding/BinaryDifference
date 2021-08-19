@@ -78,9 +78,9 @@ namespace BinaryDifference
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
 
-                ButtonToggle();
                 Dispatcher.Invoke(new ThreadStart(() =>
                     {
+                        ButtonToggle();
                         Compare_Listbox1.Items.Clear();
                         Compare_Listbox2.Items.Clear();
                         CompareStatus_Box.Text = "Processing...";
@@ -182,13 +182,11 @@ namespace BinaryDifference
 
         private void ButtonToggle()
         {
-            Dispatcher.BeginInvoke(new ThreadStart(() =>
-                {
-                    File1_Button.IsEnabled = !File1_Button.IsEnabled;
-                    File2_Button.IsEnabled = !File2_Button.IsEnabled;
-                    Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
-                }
-            ));
+            {
+                File1_Button.IsEnabled = !File1_Button.IsEnabled;
+                File2_Button.IsEnabled = !File2_Button.IsEnabled;
+                Compare_Button.IsEnabled = !Compare_Button.IsEnabled;
+            }
         }
 
         private static void ItemEdit(ListBox box, int index, string text)
