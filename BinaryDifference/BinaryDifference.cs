@@ -96,11 +96,12 @@ namespace BinaryDifference
             Task<Tuple<List<string>, List<string>>> task2 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength, bufferLength));
             //Task<Tuple<List<string>, List<string>>> task3 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 2, bufferLength));
             //Task<Tuple<List<string>, List<string>>> task4 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, bufferLength * 3, bufferLength));
-            task1.Wait();
-            Debug.WriteLine("Thread 1 complete");
-            task2.Wait();
-            Debug.WriteLine("Thread 2 complete");
+            Task.WaitAll(task1, task2/*, task3*/);
 
+            //fileStream1.Dispose();
+            //fileStream2.Dispose();
+
+            
             //Task.WaitAll(task1, task2/*, task3*/);
             //Debug.WriteLine("All threads complete");
 
@@ -114,7 +115,7 @@ namespace BinaryDifference
                 //.Concat(task3.Result.Item2)
                 .ToList();
             */
-            
+
 
 
             Dispatcher.Invoke(new ThreadStart(() =>
@@ -138,9 +139,6 @@ namespace BinaryDifference
                     }
                 }
             ));
-
-            //fileStream1.Dispose();
-            //fileStream2.Dispose();
 
             if (Listbox1.Items.IsEmpty)
             {
