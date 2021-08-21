@@ -1,4 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,6 +14,13 @@ namespace BinaryDifference
         public MainWindow()
         {
             InitializeComponent();
+
+            ////////////////////////////// TODO DELETE AUTO CHECK
+            File1_Box.Uid = @"D:\1.bin";
+            File2_Box.Uid = @"D:\2.bin";
+            Compare_Button.IsEnabled = true;
+            Task.Run(() => CheckDifference(@"D:\1.bin", @"D:\2.bin"));
+            ////////////////////////////// TODO DELETE AUTO CHECK
         }
 
         private void File1_Button_Click(object sender, RoutedEventArgs e)
