@@ -18,12 +18,6 @@ namespace BinaryDifference
             e.Handled = true;
         }
 
-        private void ButtonToggle()
-        {
-            File1_Button.IsEnabled = !File1_Button.IsEnabled;
-            File2_Button.IsEnabled = !File2_Button.IsEnabled;
-        }
-
         private void FileBrowse(TextBox fileBox)
         {
             var fileDialog = new OpenFileDialog();
@@ -73,21 +67,6 @@ namespace BinaryDifference
             var timeSpan = stopWatch.Elapsed;
             string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}:{timeSpan.Milliseconds}";
             return elapsedTime;
-        }
-
-        private void Finished(Stopwatch stopWatch)
-        {
-            if (!Listbox1.Items.IsEmpty)
-            {
-                ButtonToggle();
-                Save_Button.IsEnabled = true;
-                Status_Box.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
-            }
-            else
-            {
-                ButtonToggle();
-                Status_Box.Text = "Files are identical. Time elapsed: " + ElapsedTime(stopWatch);
-            }
         }
 
         private void SaveFile()
