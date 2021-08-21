@@ -86,10 +86,11 @@ namespace BinaryDifference
                 }
             ));
 
-            var file1Details = new FileInfo(filePath1);
-            int bufferLength = SetBufferSize(file1Details.Length);
-            var fileStream1 = new FileStream(filePath1, FileMode.Open, FileAccess.Read);
-            var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read);
+
+            var fileStream1 = new FileManager(filePath1);
+            var fileStream2 = new FileManager(filePath2);
+            int bufferLength = SetBufferSize(fileStream1.FileLength);
+
 
             // for loop eventually
             Task<Tuple<List<string>, List<string>>> task1 = Task.Factory.StartNew(() => ThreadProcess(fileStream1, fileStream2, 0, bufferLength));
@@ -161,11 +162,11 @@ namespace BinaryDifference
             }
         }
 
-        private static byte[] FileReadBuffer(long offset, int bufferSize, FileStream fileStream)
+        private static byte[] FileReadBuffer(long offset, int bufferSize, FileManager fileStream)
         {
-            if (fileStream.Length - offset < bufferSize)
+            if (fileStream.FileLength - offset < bufferSize)
             {
-                bufferSize = (int)(fileStream.Length - offset);
+                bufferSize = (int)(fileStream.FileLength - offset);
 
                 if (bufferSize <= 0)
                 {
@@ -174,8 +175,8 @@ namespace BinaryDifference
             }
 
             byte[] buffer = new byte[bufferSize];
-            _ = fileStream.Seek(offset, SeekOrigin.Begin);
-            _ = fileStream.Read(buffer, 0, bufferSize);
+            _ = fileStream.FileStream.Seek(offset, SeekOrigin.Begin);
+            _ = fileStream.FileStream.Read(buffer, 0, bufferSize);
             return buffer;
         }
 
@@ -261,7 +262,7 @@ namespace BinaryDifference
             }
         }
 
-        private static Tuple <List<string>, List<string>> ThreadProcess(FileStream fileStream1, FileStream fileStream2, long fileOffset, int bufferLength)
+        private static Tuple <List<string>, List<string>> ThreadProcess(FileManager fileStream1, FileManager fileStream2, long fileOffset, int bufferLength)
         {
             List<string> list1 = new();
             List<string> list2 = new();
