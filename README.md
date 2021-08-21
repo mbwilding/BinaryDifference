@@ -1,6 +1,6 @@
 # Binary Difference
 
-Compares two files and gives you the variance per address/data in hex values.
+Compares two files and gives you the variance per address/data in hex values.<br />
 Only works with files of the same size, no size limit.
 
 Requires .NET Core 5 to compile.
