@@ -1,4 +1,5 @@
-## Downloads
+#Binary Difference
+##Downloads
 This download requires .NET Core 5<br />
 [Binary Difference | Small EXE](https://github.com/mbwilding/BinaryDifference/releases/download/1.0/BinaryDifference.exe)<br />
 This download does NOT require .NET Core 5<br />
