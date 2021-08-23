@@ -49,7 +49,7 @@
             </ScrollViewer>
             <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="3" FontSize="16" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectedIndex="0" SelectionChanged="FormatComboBox_OnSelectionChanged">
                 <ComboBoxItem Content="Default"></ComboBoxItem>
-                <ComboBoxItem Content="C# Dictionary"></ComboBoxItem>
+                <ComboBoxItem Content="Binary Patcher"></ComboBoxItem>
             </ComboBox>
             <Button x:Name="SaveButton" Grid.Column="1" Grid.Row="3" Content="Save Results" Click="Save_Button_Click" IsTabStop="True" IsEnabled="False" FontWeight="Normal" FontSize="16"/>
             <TextBox x:Name="StatusBox" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Text="Please load the files to compare." Focusable="False" IsHitTestVisible="False" IsTabStop="False" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AllowDrop="False" Background="#FFF1F1F1" FontWeight="Normal"/>

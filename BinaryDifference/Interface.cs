@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,7 @@ using Microsoft.Win32;
 
 namespace BinaryDifference
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public partial class MainWindow
     {
         private void File1_Button_Click(object s, RoutedEventArgs e)
@@ -94,24 +96,29 @@ namespace BinaryDifference
 
             if (fileDialog.ShowDialog() == true)
             {
-                var list = new List<string>();
-                ListCreate(list, File1Box, ListBox1);
-                ListCreate(list, File2Box, ListBox2);
-                WriteFile(list, fileDialog.FileName);
+                var list1 = new List<string>();
+                var list2 = new List<string>();
+                ListCreate(list1, File1Box, ListBox1);
+                ListCreate(list2, File2Box, ListBox2);
+
+                var removedExt = Path.GetFileNameWithoutExtension(fileDialog.FileName);
+                var pathOnly = fileDialog.FileName[..^removedExt.Length];
+                WriteFile(list1, pathOnly + removedExt + "-File1.txt");
+                WriteFile(list2, pathOnly + removedExt + "-File2.txt");
             }
         }
         
         private static void ListCreate(ICollection<string> list, UIElement fileBox, ItemsControl listBox)
         {
-            list.Add(fileBox.Uid);
-            list.Add("-------------");
-            list.Add(string.Empty);
+            list.Add(
+                "File: " +
+                fileBox.Uid +
+                "\n------------------------------\n"
+                );
             foreach (string item in listBox.Items)
             {
                 list.Add(item);
             }
-
-            list.Add(string.Empty);
         }
 
         private void WriteFile(IEnumerable<string> list, string path)
@@ -122,14 +129,7 @@ namespace BinaryDifference
                     textWriter.WriteLine(itemText);
             }
 
-            if (File.Exists(path))
-            {
-                StatusBox.Text = "Saved file: " + path;
-            }
-            else
-            {
-                StatusBox.Text = "Saving failed: Check path write permissions.";
-            }
+            StatusBox.Text = File.Exists(path) ? "Files Saved." : "Saving failed: Check path write permissions.";
         }
 
         private static string ByteToHex(byte[] buffer, int offset)

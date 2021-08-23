@@ -21,7 +21,7 @@ namespace BinaryDifference
                     }
                     break;
 
-                case "C# Dictionary":
+                case "Binary Patcher":
                     for (int i = 0; i < Differences.Count; i++)
                     {
                         _ = ListBox1.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item1));
