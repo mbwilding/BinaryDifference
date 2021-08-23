@@ -20,17 +20,18 @@ namespace BinaryDifference
 
                 Dispatcher.Invoke(() =>
                 {
-                    File1_Button.IsEnabled = false;
-                    File2_Button.IsEnabled = false;
-                    Listbox1.Items.Clear();
-                    Listbox2.Items.Clear();
-                    Status_Box.Text = "Processing...";
+                    File1Button.IsEnabled = false;
+                    File2Button.IsEnabled = false;
+                    ListBox1.Items.Clear();
+                    ListBox2.Items.Clear();
+                    StatusBox.Text = "Processing...";
                 });
 
                 var fileStream1 = new FileStream(filePath1, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read, FileShare.Read);
                 int bufferSize = FileManager.BufferSize;
                 long fileOffset = 0;
+                int index = 0;
                 while (fileOffset < fileStream1.Length)
                 {
                     byte[] buffer1 = FileManager.SegmentRead(fileOffset, bufferSize, fileStream1);
@@ -43,7 +44,6 @@ namespace BinaryDifference
                     }
                     else
                     {
-                        int index = 0;
                         int bufferOffsetPrev = -1;
                         for (int bufferOffset = 0; bufferOffset < buffer1.Length; bufferOffset++)
                         {
@@ -55,16 +55,14 @@ namespace BinaryDifference
                             {
                                 Dispatcher.Invoke(() =>
                                 {
-                                    index = Listbox1.Items.Add(StringPrepare(fileOffset, bufferOffset, hex1));
-                                    Listbox2.Items.Add(StringPrepare(fileOffset, bufferOffset, hex2));
+                                    index = SaveFormat(fileOffset, bufferOffset, hex1, hex2, index, true, SaveComboBox.SelectionBoxItem.ToString());
                                 });
                             }
                             else
                             {
                                 Dispatcher.Invoke(() =>
                                 {
-                                    ItemEdit(Listbox1, index, hex1);
-                                    ItemEdit(Listbox2, index, hex2);
+                                    SaveFormat(fileOffset, bufferOffset, hex1, hex2, index, false, SaveComboBox.SelectionBoxItem.ToString());
                                 });
                             }
                             bufferOffsetPrev = bufferOffset;
@@ -72,19 +70,28 @@ namespace BinaryDifference
                         fileOffset += bufferSize;
                     }
                 }
+
                 Dispatcher.Invoke(() =>
                 {
-                    File1_Button.IsEnabled = true;
-                    File2_Button.IsEnabled = true;
+                    File1Button.IsEnabled = true;
+                    File2Button.IsEnabled = true;
 
-                    if (!Listbox1.Items.IsEmpty)
+                    if (!ListBox1.Items.IsEmpty)
                     {
-                        Save_Button.IsEnabled = true;
-                        Status_Box.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
+                        switch (SaveComboBox.Text)
+                        {
+                            case "C# Dictionary":
+                                ItemCleanCSharpDictionary(ListBox1, index);
+                                ItemCleanCSharpDictionary(ListBox2, index);
+                                break;
+                        }
+
+                        SaveButton.IsEnabled = true;
+                        StatusBox.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
                     }
                     else
                     {
-                        Status_Box.Text = "Files are identical. Time elapsed: " + ElapsedTime(stopWatch);
+                        StatusBox.Text = "Files are identical. Time elapsed: " + ElapsedTime(stopWatch);
                     }
                 });
             }).Start();

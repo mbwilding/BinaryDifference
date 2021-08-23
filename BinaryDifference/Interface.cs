@@ -25,40 +25,33 @@ namespace BinaryDifference
             {
                 fileBox.Text = fileDialog.SafeFileName;
                 fileBox.Uid = fileDialog.FileName;
-                Status_Box.Text = fileBox.Uid + " loaded.";
-                Save_Button.IsEnabled = false;
+                StatusBox.Text = fileBox.Uid + " loaded.";
+                SaveButton.IsEnabled = false;
 
-                Listbox1.Items.Clear();
-                Listbox2.Items.Clear();
+                ListBox1.Items.Clear();
+                ListBox2.Items.Clear();
             }
 
-            if (File1_Box.Uid != string.Empty && File2_Box.Uid != string.Empty)
+            if (File1Box.Uid != string.Empty && File2Box.Uid != string.Empty)
             {
                 FileValidation();
             }
         }
         private void FileValidation()
         {
-            Save_Button.IsEnabled = false;
+            SaveButton.IsEnabled = false;
 
-            var file1 = new FileInfo(File1_Box.Uid);
-            var file2 = new FileInfo(File2_Box.Uid);
+            var file1 = new FileInfo(File1Box.Uid);
+            var file2 = new FileInfo(File2Box.Uid);
 
             if (file1.Length == file2.Length)
             {
-                CheckDifference(File1_Box.Uid, File2_Box.Uid);
+                CheckDifference(File1Box.Uid, File2Box.Uid);
             }
             else
             {
-                Status_Box.Text = "Files cannot be different sizes.";
+                StatusBox.Text = "Files cannot be different sizes.";
             }
-        }
-
-        private static void ItemEdit(ItemsControl listBox, int index, string append)
-        {
-            string content = (String)listBox.Items.GetItemAt(index);
-            listBox.Items.RemoveAt(index);
-            listBox.Items.Insert(index, content + append);
         }
 
         private static string ElapsedTime(Stopwatch stopWatch)
@@ -81,8 +74,8 @@ namespace BinaryDifference
             if (fileDialog.ShowDialog() == true)
             {
                 var list = new List<string>();
-                ListCreate(list, File1_Box, Listbox1);
-                ListCreate(list, File2_Box, Listbox2);
+                ListCreate(list, File1Box, ListBox1);
+                ListCreate(list, File2Box, ListBox2);
                 WriteFile(list, fileDialog.FileName);
             }
         }
@@ -110,17 +103,12 @@ namespace BinaryDifference
 
             if (File.Exists(path))
             {
-                Status_Box.Text = "Saved file: " + path;
+                StatusBox.Text = "Saved file: " + path;
             }
             else
             {
-                Status_Box.Text = "Saving failed: Check path write permissions.";
+                StatusBox.Text = "Saving failed: Check path write permissions.";
             }
-        }
-
-        private static string StringPrepare(long fileOffset, int bufferOffset, string value)
-        {
-            return "0x" + (fileOffset + bufferOffset).ToString("X") + ": " + value;
         }
 
         private static string ByteToHex(byte[] buffer, int offset)
