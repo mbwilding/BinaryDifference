@@ -11,11 +11,31 @@ namespace BinaryDifference
 {
     public partial class MainWindow
     {
+        private void File1_Button_Click(object s, RoutedEventArgs e)
+        {
+            FileBrowse(File1Box);
+        }
+
+        private void File2_Button_Click(object s, RoutedEventArgs e)
+        {
+            FileBrowse(File2Box);
+        }
+
+        private void Save_Button_Click(object s, RoutedEventArgs e)
+        {
+            SaveFile();
+        }
+
         private void ScrollViewer_PreviewMouseWheel(object s, MouseWheelEventArgs e)
         {
             ScrollViewer scv = (ScrollViewer)s;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - (double)e.Delta / 5);
             e.Handled = true;
+        }
+
+        private void FormatComboBox_OnSelectionChanged(object s, RoutedEventArgs e)
+        {
+            Format();
         }
 
         private void FileBrowse(TextBox fileBox)
@@ -28,8 +48,7 @@ namespace BinaryDifference
                 StatusBox.Text = fileBox.Uid + " loaded.";
                 SaveButton.IsEnabled = false;
 
-                ListBox1.Items.Clear();
-                ListBox2.Items.Clear();
+                Clear();
             }
 
             if (File1Box.Uid != string.Empty && File2Box.Uid != string.Empty)
@@ -39,6 +58,8 @@ namespace BinaryDifference
         }
         private void FileValidation()
         {
+            Differences.Clear();
+
             SaveButton.IsEnabled = false;
 
             var file1 = new FileInfo(File1Box.Uid);
@@ -114,6 +135,12 @@ namespace BinaryDifference
         private static string ByteToHex(byte[] buffer, int offset)
         {
             return BitConverter.ToString(buffer, offset, 1);
+        }
+
+        public void Clear()
+        {
+            ListBox1.Items.Clear();
+            ListBox2.Items.Clear();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -11,6 +12,8 @@ namespace BinaryDifference
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public partial class MainWindow
     {
+        public List<(string, string, long)> Differences = new();
+
         private void CheckDifference(string filePath1, string filePath2)
         {
             new Thread(() =>
@@ -22,8 +25,7 @@ namespace BinaryDifference
                 {
                     File1Button.IsEnabled = false;
                     File2Button.IsEnabled = false;
-                    ListBox1.Items.Clear();
-                    ListBox2.Items.Clear();
+                    Clear();
                     StatusBox.Text = "Processing...";
                 });
 
@@ -31,7 +33,6 @@ namespace BinaryDifference
                 var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read, FileShare.Read);
                 int bufferSize = FileManager.BufferSize;
                 long fileOffset = 0;
-                int index = 0;
                 while (fileOffset < fileStream1.Length)
                 {
                     byte[] buffer1 = FileManager.SegmentRead(fileOffset, bufferSize, fileStream1);
@@ -53,17 +54,16 @@ namespace BinaryDifference
                             string hex2 = ByteToHex(buffer2, bufferOffset);
                             if (bufferOffset != bufferOffsetPrev + 1 || bufferOffset == 0)
                             {
-                                Dispatcher.Invoke(() =>
-                                {
-                                    index = SaveFormat(fileOffset, bufferOffset, hex1, hex2, index, true, SaveComboBox.SelectionBoxItem.ToString());
-                                });
+                                Differences.Add((hex1, hex2, fileOffset + bufferOffset));
                             }
                             else
                             {
-                                Dispatcher.Invoke(() =>
-                                {
-                                    SaveFormat(fileOffset, bufferOffset, hex1, hex2, index, false, SaveComboBox.SelectionBoxItem.ToString());
-                                });
+                                int index = Differences.Count - 1;
+                                string hexPrev1 = Differences[index].Item1 + hex1;
+                                string hexPrev2 = Differences[index].Item2 + hex2;
+                                long offsetPrev = Differences[index].Item3;
+                                Differences.RemoveAt(index);
+                                Differences.Insert(index, (hexPrev1, hexPrev2, offsetPrev));
                             }
                             bufferOffsetPrev = bufferOffset;
                         }
@@ -76,15 +76,9 @@ namespace BinaryDifference
                     File1Button.IsEnabled = true;
                     File2Button.IsEnabled = true;
 
-                    if (!ListBox1.Items.IsEmpty)
+                    if (Differences.Count != 0)
                     {
-                        switch (SaveComboBox.Text)
-                        {
-                            case "C# Dictionary":
-                                ItemCleanCSharpDictionary(ListBox1, index);
-                                ItemCleanCSharpDictionary(ListBox2, index);
-                                break;
-                        }
+                        Format();
 
                         SaveButton.IsEnabled = true;
                         StatusBox.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);

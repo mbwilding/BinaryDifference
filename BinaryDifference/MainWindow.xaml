@@ -47,7 +47,7 @@
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </ScrollViewer>
-            <ComboBox x:Name="SaveComboBox" Grid.Column="0" Grid.Row="3" FontSize="14" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectedIndex="0">
+            <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="3" FontSize="16" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectedIndex="0" SelectionChanged="FormatComboBox_OnSelectionChanged">
                 <ComboBoxItem Content="Default"></ComboBoxItem>
                 <ComboBoxItem Content="C# Dictionary"></ComboBoxItem>
             </ComboBox>
