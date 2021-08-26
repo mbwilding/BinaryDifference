@@ -92,7 +92,7 @@ namespace BinaryDifference
                 Filter = "Text files (*.txt)|*.txt",
                 FilterIndex = 2,
                 RestoreDirectory = true
-            };
+            }; 
 
             if (fileDialog.ShowDialog() == true)
             {
@@ -101,10 +101,9 @@ namespace BinaryDifference
                 ListCreate(list1, File1Box, ListBox1);
                 ListCreate(list2, File2Box, ListBox2);
 
-                var removedExt = Path.GetFileNameWithoutExtension(fileDialog.FileName);
-                var pathOnly = fileDialog.FileName[..^removedExt.Length];
-                WriteFile(list1, pathOnly + "-File1.txt");
-                WriteFile(list2, pathOnly + "-File2.txt");
+                var filePathWithoutExt = Path.ChangeExtension(fileDialog.FileName, null);
+                WriteFile(list1, filePathWithoutExt + "-File1.txt");
+                WriteFile(list2, filePathWithoutExt + "-File2.txt");
             }
         }
         
