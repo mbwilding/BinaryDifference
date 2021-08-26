@@ -38,6 +38,9 @@ namespace BinaryDifference
         private void FormatComboBox_OnSelectionChanged(object s, RoutedEventArgs e)
         {
             Format();
+            Properties.Settings.Default.DataFormat = FormatComboBox.SelectedIndex;
+            Properties.Settings.Default.Save();
+            Debug.WriteLine(Properties.Settings.Default.DataFormat);
         }
 
         private void FileBrowse(TextBox fileBox)

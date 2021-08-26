@@ -47,7 +47,7 @@
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </ScrollViewer>
-            <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="3" FontSize="16" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectedIndex="0" SelectionChanged="FormatComboBox_OnSelectionChanged">
+            <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="3" FontSize="16" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectionChanged="FormatComboBox_OnSelectionChanged">
                 <ComboBoxItem Content="Default"></ComboBoxItem>
                 <ComboBoxItem Content="Binary Patcher"></ComboBoxItem>
             </ComboBox>

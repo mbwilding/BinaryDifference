@@ -6,14 +6,13 @@ namespace BinaryDifference
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public partial class MainWindow
     {
-        // Questionable code smell section, enjoy.
         public void Format()
         {
             if (Differences.Count == 0) return;
             Clear();
-            switch (FormatComboBox.SelectedValue.ToString()?.Remove(0, 38))
+            switch (FormatComboBox.SelectedIndex)
             {
-                case "Default":
+                case 0: // Default
                     for (int i = 0; i < Differences.Count; i++)
                     {
                         _ = ListBox1.Items.Add(FormatDefault(Differences[i].Item3, Differences[i].Item1));
@@ -21,7 +20,7 @@ namespace BinaryDifference
                     }
                     break;
 
-                case "Binary Patcher":
+                case 1: // Binary Patcher
                     for (int i = 0; i < Differences.Count; i++)
                     {
                         _ = ListBox1.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item1));
