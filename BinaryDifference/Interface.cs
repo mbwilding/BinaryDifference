@@ -103,8 +103,8 @@ namespace BinaryDifference
 
                 var removedExt = Path.GetFileNameWithoutExtension(fileDialog.FileName);
                 var pathOnly = fileDialog.FileName[..^removedExt.Length];
-                WriteFile(list1, pathOnly + removedExt + "-File1.txt");
-                WriteFile(list2, pathOnly + removedExt + "-File2.txt");
+                WriteFile(list1, pathOnly + "-File1.txt");
+                WriteFile(list2, pathOnly + "-File2.txt");
             }
         }
         
