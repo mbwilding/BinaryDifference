@@ -41,6 +41,7 @@ namespace BinaryDifference
                     bufferSize = buffer1.Length;
                     if (FileManager.memcmp(buffer1, buffer2, bufferSize) == 0)
                     {
+                        difference = false;
                         fileOffset += bufferSize;
                     }
                     else
