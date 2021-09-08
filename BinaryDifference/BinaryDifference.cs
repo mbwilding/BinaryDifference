@@ -33,7 +33,7 @@ namespace BinaryDifference
                 var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read, FileShare.Read);
                 int bufferSize = FileManager.BufferSize;
                 long fileOffset = 0;
-                bool prevBufferDiff = false;
+                bool difference = false;
                 while (fileOffset < fileStream1.Length)
                 {
                     byte[] buffer1 = FileManager.SegmentRead(fileOffset, bufferSize, fileStream1);
@@ -49,13 +49,13 @@ namespace BinaryDifference
                         {
                             if (buffer1[bufferOffset] == buffer2[bufferOffset])
                             {
-                                prevBufferDiff = false;
+                                difference = false;
                                 continue;
                             }
 
                             string hex1 = ByteToHex(buffer1, bufferOffset);
                             string hex2 = ByteToHex(buffer2, bufferOffset);
-                            if (!prevBufferDiff)
+                            if (!difference)
                             {
                                 Differences.Add((hex1, hex2, fileOffset + bufferOffset));
                             }
@@ -68,7 +68,7 @@ namespace BinaryDifference
                                 Differences.RemoveAt(index);
                                 Differences.Insert(index, (hexPrev1, hexPrev2, offsetPrev));
                             }
-                            prevBufferDiff = true;
+                            difference = true;
                         }
                         fileOffset += bufferSize;
                     }
