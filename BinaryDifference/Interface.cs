@@ -84,7 +84,7 @@ namespace BinaryDifference
         {
             stopWatch.Stop();
             var timeSpan = stopWatch.Elapsed;
-            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}:{timeSpan.Milliseconds}";
+            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}:{timeSpan.Milliseconds:000}";
             return elapsedTime;
         }
 
