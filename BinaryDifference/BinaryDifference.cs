@@ -33,26 +33,29 @@ namespace BinaryDifference
                 var fileStream2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read, FileShare.Read);
                 int bufferSize = FileManager.BufferSize;
                 long fileOffset = 0;
+                bool prevBufferDiff = false;
                 while (fileOffset < fileStream1.Length)
                 {
                     byte[] buffer1 = FileManager.SegmentRead(fileOffset, bufferSize, fileStream1);
                     byte[] buffer2 = FileManager.SegmentRead(fileOffset, bufferSize, fileStream2);
                     bufferSize = buffer1.Length;
-
                     if (FileManager.memcmp(buffer1, buffer2, bufferSize) == 0)
                     {
                         fileOffset += bufferSize;
                     }
                     else
                     {
-                        int bufferOffsetPrev = -1;
                         for (int bufferOffset = 0; bufferOffset < buffer1.Length; bufferOffset++)
                         {
-                            if (buffer1[bufferOffset] == buffer2[bufferOffset]) continue;
+                            if (buffer1[bufferOffset] == buffer2[bufferOffset])
+                            {
+                                prevBufferDiff = false;
+                                continue;
+                            }
 
                             string hex1 = ByteToHex(buffer1, bufferOffset);
                             string hex2 = ByteToHex(buffer2, bufferOffset);
-                            if (bufferOffset != bufferOffsetPrev + 1 || bufferOffset == 0)
+                            if (!prevBufferDiff)
                             {
                                 Differences.Add((hex1, hex2, fileOffset + bufferOffset));
                             }
@@ -65,7 +68,7 @@ namespace BinaryDifference
                                 Differences.RemoveAt(index);
                                 Differences.Insert(index, (hexPrev1, hexPrev2, offsetPrev));
                             }
-                            bufferOffsetPrev = bufferOffset;
+                            prevBufferDiff = true;
                         }
                         fileOffset += bufferSize;
                     }
