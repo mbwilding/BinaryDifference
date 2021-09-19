@@ -59,7 +59,7 @@
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </ScrollViewer>
-            <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="2" FontSize="16" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectionChanged="FormatComboBox_OnSelectionChanged" SelectedIndex="1" Style="{DynamicResource {x:Static adonisUi:Styles.AccentComboBox}}">
+            <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="2" FontSize="16" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectionChanged="FormatComboBox_OnSelectionChanged" Style="{DynamicResource {x:Static adonisUi:Styles.AccentComboBox}}">
                 <ComboBoxItem Content="Default"/>
                 <ComboBoxItem Content="Binary Patcher" />
             </ComboBox>
