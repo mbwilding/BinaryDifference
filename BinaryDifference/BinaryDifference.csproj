@@ -12,6 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AdonisUI.ClassicTheme.NET5" Version="1.17.1" />
+    <PackageReference Include="AdonisUI.NET5" Version="1.17.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

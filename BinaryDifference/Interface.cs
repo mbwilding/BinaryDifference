@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,12 +16,12 @@ namespace BinaryDifference
     {
         private void File1_Button_Click(object s, RoutedEventArgs e)
         {
-            FileBrowse(File1Box);
+            FileBrowse(File1Button);
         }
 
         private void File2_Button_Click(object s, RoutedEventArgs e)
         {
-            FileBrowse(File2Box);
+            FileBrowse(File2Button);
         }
 
         private void Save_Button_Click(object s, RoutedEventArgs e)
@@ -43,36 +44,41 @@ namespace BinaryDifference
             Debug.WriteLine(Properties.Settings.Default.DataFormat);
         }
 
-        private void FileBrowse(TextBox fileBox)
+        private void FileBrowse(Button file)
         {
-            var fileDialog = new OpenFileDialog();
-            if (fileDialog.ShowDialog() == true)
+            Task.Run(() =>
             {
-                fileBox.Text = fileDialog.SafeFileName;
-                fileBox.Uid = fileDialog.FileName;
-                StatusBox.Text = fileBox.Uid + " loaded.";
-                SaveButton.IsEnabled = false;
-
-                Clear();
-            }
-
-            if (File1Box.Uid != string.Empty && File2Box.Uid != string.Empty)
-            {
-                FileValidation();
-            }
+                var fileDialog = new OpenFileDialog();
+                if (fileDialog.ShowDialog() == true)
+                {
+                    Dispatcher.BeginInvoke((Action) (() =>
+                    {
+                        file.Content = fileDialog.SafeFileName;
+                        file.Uid = fileDialog.FileName;
+                        StatusBox.Text = file.Uid + " loaded.";
+                        SaveButton.IsEnabled = false;
+                        Clear();
+                        if (File1Button.Uid != string.Empty && File2Button.Uid != string.Empty)
+                        {
+                            FileValidation();
+                        }
+                    }));
+                }
+            });
         }
+
         private void FileValidation()
         {
             Differences.Clear();
 
             SaveButton.IsEnabled = false;
 
-            var file1 = new FileInfo(File1Box.Uid);
-            var file2 = new FileInfo(File2Box.Uid);
+            var file1 = new FileInfo(File1Button.Uid);
+            var file2 = new FileInfo(File2Button.Uid);
 
             if (file1.Length == file2.Length)
             {
-                CheckDifference(File1Box.Uid, File2Box.Uid);
+                CheckDifference(File1Button.Uid, File2Button.Uid);
             }
             else
             {
@@ -90,24 +96,30 @@ namespace BinaryDifference
 
         private void SaveFile()
         {
-            var fileDialog = new SaveFileDialog
+            Task.Run(() =>
             {
-                Filter = "Text files (*.txt)|*.txt",
-                FilterIndex = 2,
-                RestoreDirectory = true
-            }; 
+                var fileDialog = new SaveFileDialog
+                {
+                    Filter = "Text files (*.txt)|*.txt",
+                    FilterIndex = 2,
+                    RestoreDirectory = true
+                };
 
-            if (fileDialog.ShowDialog() == true)
-            {
-                var list1 = new List<string>();
-                var list2 = new List<string>();
-                ListCreate(list1, File1Box, ListBox1);
-                ListCreate(list2, File2Box, ListBox2);
+                if (fileDialog.ShowDialog() == true)
+                {
+                    Dispatcher.BeginInvoke((Action)(() =>
+                    {
+                        var list1 = new List<string>();
+                        var list2 = new List<string>();
+                        ListCreate(list1, File1Button, ListBox1);
+                        ListCreate(list2, File2Button, ListBox2);
 
-                var filePathWithoutExt = Path.ChangeExtension(fileDialog.FileName, null);
-                WriteFile(list1, filePathWithoutExt + "-File1.txt");
-                WriteFile(list2, filePathWithoutExt + "-File2.txt");
-            }
+                        var filePathWithoutExt = Path.ChangeExtension(fileDialog.FileName, null);
+                        WriteFile(list1, filePathWithoutExt + "-File1.txt");
+                        WriteFile(list2, filePathWithoutExt + "-File2.txt");
+                    }));
+                }
+            });
         }
         
         private static void ListCreate(ICollection<string> list, UIElement fileBox, ItemsControl listBox)

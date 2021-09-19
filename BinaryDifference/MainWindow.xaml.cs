@@ -1,9 +1,9 @@
-﻿using System.Threading;
+﻿using AdonisUI.Controls;
 
 namespace BinaryDifference
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public partial class MainWindow
+    public partial class MainWindow : AdonisWindow
     {
         public MainWindow()
         {
