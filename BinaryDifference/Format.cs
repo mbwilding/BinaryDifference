@@ -25,7 +25,6 @@ namespace BinaryDifference
                     {
                         _ = ListBox1.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item1));
                         _ = ListBox2.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item2));
-
                     }
                     CleanCSharpDictionary(ListBox1);
                     CleanCSharpDictionary(ListBox2);

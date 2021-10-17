@@ -41,7 +41,6 @@ namespace BinaryDifference
             Format();
             Properties.Settings.Default.DataFormat = FormatComboBox.SelectedIndex;
             Properties.Settings.Default.Save();
-            Debug.WriteLine(Properties.Settings.Default.DataFormat);
         }
 
         private void FileBrowse(Button file)
