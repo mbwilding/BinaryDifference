@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using Microsoft.Win32;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace BinaryDifference
 {
@@ -26,7 +32,7 @@ namespace BinaryDifference
 
         private void Save_Button_Click(object s, RoutedEventArgs e)
         {
-            SaveFile();
+            SaveFile(FormatComboBox.Text == "Binary Patcher");
         }
 
         private void ScrollViewer_PreviewMouseWheel(object s, MouseWheelEventArgs e)
@@ -93,30 +99,77 @@ namespace BinaryDifference
             return elapsedTime;
         }
 
-        private void SaveFile()
+        private void SaveFile(bool binaryPatcher)
         {
             Task.Run(() =>
             {
-                var fileDialog = new SaveFileDialog
+                if (binaryPatcher)
                 {
-                    Filter = "Text files (*.txt)|*.txt",
-                    FilterIndex = 2,
-                    RestoreDirectory = true
-                };
-
-                if (fileDialog.ShowDialog() == true)
-                {
+                    List<string> listOfItems = new();
                     Dispatcher.BeginInvoke((Action)(() =>
                     {
-                        var list1 = new List<string>();
-                        var list2 = new List<string>();
-                        ListCreate(list1, File1Button, ListBox1);
-                        ListCreate(list2, File2Button, ListBox2);
+                        var fileDialog = new SaveFileDialog
+                        {
+                            Filter = "Yaml files (*.yml)|*.yml",
+                            FilterIndex = 2,
+                            RestoreDirectory = true
+                        };
+                        
+                        listOfItems.AddRange(ListBox2.Items.Cast<string>());
 
-                        var filePathWithoutExt = Path.ChangeExtension(fileDialog.FileName, null);
-                        WriteFile(list1, filePathWithoutExt + "-File1.txt");
-                        WriteFile(list2, filePathWithoutExt + "-File2.txt");
+                        if (fileDialog.ShowDialog() == true)
+                        {
+                            var serializer = new SerializerBuilder()
+                                .WithNamingConvention(PascalCaseNamingConvention.Instance)
+                                .Build();
+
+                            var patch = new PatchFile
+                            {
+                                Name = "Fill me in",
+                                Path = "Fill me in",
+                                Payload = new Dictionary<long, string>()
+                            };
+
+                            foreach (var dict in listOfItems.Select(item => item
+                                         .Replace("{", string.Empty)
+                                         .Replace("\"", string.Empty)
+                                         .Replace(" ", string.Empty)
+                                         .Replace("}", string.Empty)
+                                         .TrimEnd(',')
+                                         .Split(',')
+                                         .ToList()))
+                            {
+                                patch.Payload.Add(Convert.ToInt64(dict[0], 16), dict[1]);
+                            }
+
+                            var patchFile = serializer.Serialize(new List<PatchFile> { patch });
+                            File.WriteAllText(fileDialog.FileName, patchFile);
+                        }
                     }));
+                }
+                else
+                {
+                    var fileDialog = new SaveFileDialog
+                    {
+                        Filter = "Text files (*.txt)|*.txt",
+                        FilterIndex = 2,
+                        RestoreDirectory = true
+                    };
+
+                    if (fileDialog.ShowDialog() == true)
+                    {
+                        Dispatcher.BeginInvoke((Action)(() =>
+                        {
+                            var list1 = new List<string>();
+                            var list2 = new List<string>();
+                            ListCreate(list1, File1Button, ListBox1);
+                            ListCreate(list2, File2Button, ListBox2);
+
+                            var filePathWithoutExt = Path.ChangeExtension(fileDialog.FileName, null);
+                            WriteFile(list1, filePathWithoutExt + "-File1.txt");
+                            WriteFile(list2, filePathWithoutExt + "-File2.txt");
+                        }));
+                    }
                 }
             });
         }
@@ -154,6 +207,13 @@ namespace BinaryDifference
         {
             ListBox1.Items.Clear();
             ListBox2.Items.Clear();
+        }
+        
+        private class PatchFile
+        {
+            public string Name { get; init; } = null!;
+            public string Path { get; init; } = null!;
+            public Dictionary<long, string> Payload { get; init; } = null!;
         }
     }
 }

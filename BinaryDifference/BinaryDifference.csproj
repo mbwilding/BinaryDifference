@@ -2,18 +2,21 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Authors>Matthew Wilding</Authors>
     <Company>Wilding Studios</Company>
     <PackageId>Binary Difference</PackageId>
     <AssemblyName>BinaryDifference</AssemblyName>
     <ApplicationIcon>icon.ico</ApplicationIcon>
+    <LangVersion>default</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AdonisUI.ClassicTheme.NET5" Version="1.17.1" />
     <PackageReference Include="AdonisUI.NET5" Version="1.17.1" />
+    <PackageReference Include="YamlDotNet" Version="12.3.1" />
   </ItemGroup>
 
   <ItemGroup>
