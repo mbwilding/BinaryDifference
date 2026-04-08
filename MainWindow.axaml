@@ -1,0 +1,269 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:BinaryDifference.ViewModels"
+        x:Class="BinaryDifference.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Binary Difference"
+        Width="820" Height="560"
+        MinWidth="600" MinHeight="400"
+        WindowStartupLocation="CenterScreen"
+        Background="#1e1e2e">
+
+    <Window.Styles>
+
+        <!-- ── Base text ─────────────────────────────────────── -->
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#cdd6f4"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Foreground"       Value="#cdd6f4"/>
+            <Setter Property="Background"       Value="#181825"/>
+            <Setter Property="BorderBrush"      Value="#313244"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="CornerRadius"     Value="6"/>
+            <Setter Property="Padding"          Value="8 4"/>
+        </Style>
+
+        <!-- ── Buttons ───────────────────────────────────────── -->
+        <Style Selector="Button">
+            <Setter Property="Background"      Value="#313244"/>
+            <Setter Property="Foreground"      Value="#cdd6f4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius"    Value="6"/>
+            <Setter Property="Padding"         Value="12 6"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#45475a"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#585b70"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1e1e2e"/>
+            <Setter Property="TextElement.Foreground" Value="#6c7086"/>
+        </Style>
+
+        <!-- file pick buttons — accent colour -->
+        <Style Selector="Button.file-btn">
+            <Setter Property="Background"  Value="#1e3a5f"/>
+            <Setter Property="Foreground"  Value="#89b4fa"/>
+            <Setter Property="FontWeight"  Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.file-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1d4e89"/>
+        </Style>
+
+        <!-- save button — green accent -->
+        <Style Selector="Button.save-btn">
+            <Setter Property="Background" Value="#1a3d2b"/>
+            <Setter Property="Foreground" Value="#a6e3a1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.save-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#245c3d"/>
+        </Style>
+        <Style Selector="Button.save-btn:disabled /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1e1e2e"/>
+            <Setter Property="TextElement.Foreground" Value="#6c7086"/>
+        </Style>
+
+        <!-- ── ComboBox ──────────────────────────────────────── -->
+        <Style Selector="ComboBox">
+            <Setter Property="Background"      Value="#313244"/>
+            <Setter Property="Foreground"      Value="#cdd6f4"/>
+            <Setter Property="BorderBrush"     Value="#45475a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"    Value="6"/>
+            <Setter Property="Padding"         Value="8 4"/>
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Foreground"  Value="#cdd6f4"/>
+            <Setter Property="Background"  Value="#313244"/>
+        </Style>
+
+        <!-- ── ListBox ───────────────────────────────────────── -->
+        <Style Selector="ListBox">
+            <Setter Property="Background"     Value="#181825"/>
+            <Setter Property="BorderBrush"    Value="#313244"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"   Value="6"/>
+            <Setter Property="Padding"        Value="0"/>
+            <Setter Property="FontFamily"     Value="Cascadia Code,Consolas,Courier New,monospace"/>
+            <Setter Property="FontSize"       Value="12"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding"          Value="10 3"/>
+            <Setter Property="Foreground"       Value="#cdd6f4"/>
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="BorderThickness"  Value="0 0 0 1"/>
+            <Setter Property="BorderBrush"      Value="#1e1e2e"/>
+        </Style>
+        <Style Selector="ListBoxItem:nth-child(even)">
+            <Setter Property="Background" Value="#1a1a2a"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#313244"/>
+        </Style>
+
+        <!-- ── ScrollBar ─────────────────────────────────────── -->
+        <Style Selector="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+    </Window.Styles>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!--  Root layout                                            -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <Grid RowDefinitions="Auto,*,Auto" Margin="12">
+
+        <!-- ── Toolbar row ───────────────────────────────────── -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="*,*,Auto,Auto"
+              Margin="0 0 0 10">
+
+            <!-- File 1 -->
+            <Button Grid.Column="0"
+                    Classes="file-btn"
+                    Command="{Binding PickFile1Command}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Margin="0 0 6 0"
+                    Height="36">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="📂" FontSize="14" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding File1Label}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+
+            <!-- File 2 -->
+            <Button Grid.Column="1"
+                    Classes="file-btn"
+                    Command="{Binding PickFile2Command}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Margin="0 0 6 0"
+                    Height="36">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="📂" FontSize="14" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding File2Label}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Format -->
+            <ComboBox Grid.Column="2"
+                      SelectedIndex="{Binding FormatIndex}"
+                      SelectionChanged="FormatComboBox_SelectionChanged"
+                      Width="160"
+                      Margin="0 0 6 0"
+                      Height="36"
+                      VerticalContentAlignment="Center">
+                <ComboBoxItem Content="Default"/>
+                <ComboBoxItem Content="Binary Patcher"/>
+            </ComboBox>
+
+            <!-- Save -->
+            <Button Grid.Column="3"
+                    Classes="save-btn"
+                    Command="{Binding SaveCommand}"
+                    Height="36"
+                    Width="120"
+                    HorizontalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="💾" FontSize="14" VerticalAlignment="Center"/>
+                    <TextBlock Text="Save" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- ── Diff panels ───────────────────────────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,8,*">
+
+            <!-- Left panel -->
+            <Border Grid.Column="0" CornerRadius="8" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="0"
+                            Background="#181825"
+                            BorderBrush="#313244"
+                            BorderThickness="1 1 1 0"
+                            CornerRadius="8 8 0 0"
+                            Padding="10 6">
+                        <TextBlock Text="{Binding File1Label}"
+                                   FontSize="11"
+                                   Foreground="#6c7086"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </Border>
+                    <ScrollViewer Grid.Row="1"
+                                  x:Name="Scroll1"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  ScrollChanged="Scroll1_ScrollChanged">
+                        <ListBox ItemsSource="{Binding LeftItems}"
+                                 IsHitTestVisible="False"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Divider -->
+            <Rectangle Grid.Column="1" Fill="#313244" Width="1" HorizontalAlignment="Center"/>
+
+            <!-- Right panel -->
+            <Border Grid.Column="2" CornerRadius="8" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="0"
+                            Background="#181825"
+                            BorderBrush="#313244"
+                            BorderThickness="1 1 1 0"
+                            CornerRadius="8 8 0 0"
+                            Padding="10 6">
+                        <TextBlock Text="{Binding File2Label}"
+                                   FontSize="11"
+                                   Foreground="#6c7086"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </Border>
+                    <ScrollViewer Grid.Row="1"
+                                  x:Name="Scroll2"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  ScrollChanged="Scroll2_ScrollChanged">
+                        <ListBox ItemsSource="{Binding RightItems}"
+                                 IsHitTestVisible="False"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ── Status bar ─────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Background="#181825"
+                BorderBrush="#313244"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12 6"
+                Margin="0 8 0 0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusText}"
+                           FontSize="12"
+                           Foreground="#a6adc8"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"/>
+                <ProgressBar Grid.Column="1"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}"
+                             Width="80" Height="4"
+                             Foreground="#89b4fa"
+                             Background="#313244"
+                             Margin="12 0 0 0"
+                             VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

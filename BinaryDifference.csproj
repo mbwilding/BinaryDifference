@@ -11,6 +11,7 @@
     <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -21,6 +22,7 @@
     <PackageReference Include="Avalonia" Version="12.0.0" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
