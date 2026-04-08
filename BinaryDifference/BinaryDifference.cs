@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -29,6 +29,7 @@ namespace BinaryDifference
             int bufferSize = 1 * 1024 * 1024; // 1MB
             long fileOffset = 0;
             bool disparity = false;
+
             while (fileOffset < fileStream1.Length)
             {
                 var task1 = FileManager.SegmentRead(fileOffset, bufferSize, fileStream1);
@@ -37,7 +38,7 @@ namespace BinaryDifference
 
                 bufferSize = buffers[0].Length;
 
-                if (FileManager.memcmp(buffers[0], buffers[1], bufferSize) != 0)
+                if (FileManager.MemCmp(buffers[0], buffers[1], bufferSize) != 0)
                 {
                     for (int bufferOffset = 0; bufferOffset < buffers[0].Length; bufferOffset++)
                     {
@@ -76,7 +77,6 @@ namespace BinaryDifference
             if (Differences.Count != 0)
             {
                 Format();
-
                 SaveButton.IsEnabled = true;
                 StatusBox.Text = "Compare completed. Time elapsed: " + ElapsedTime(stopWatch);
             }

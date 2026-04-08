@@ -1,17 +1,20 @@
-﻿using System.IO;
-using System.Runtime.InteropServices;
+using System.IO;
 using System.Threading.Tasks;
-
-// ReSharper disable once StringLiteralTypo
-// ReSharper disable once IdentifierTypo
 
 namespace BinaryDifference
 {
     public static class FileManager
     {
-        
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int memcmp(byte[] buffer1, byte[] buffer2, int count);
+        /// <summary>
+        /// Cross-platform replacement for the native msvcrt memcmp.
+        /// Returns 0 if the two spans are equal, non-zero otherwise.
+        /// </summary>
+        public static int MemCmp(byte[] buffer1, byte[] buffer2, int count)
+        {
+            return System.MemoryExtensions.SequenceEqual(
+                new System.ReadOnlySpan<byte>(buffer1, 0, count),
+                new System.ReadOnlySpan<byte>(buffer2, 0, count)) ? 0 : 1;
+        }
 
         public static async Task<byte[]> SegmentRead(long offset, int bufferSize, FileStream fileStream)
         {
@@ -22,7 +25,7 @@ namespace BinaryDifference
 
             byte[] buffer = new byte[bufferSize];
             fileStream.Seek(offset, SeekOrigin.Begin);
-            await fileStream.ReadAsync(buffer, 0, bufferSize);
+            await fileStream.ReadExactlyAsync(buffer, 0, bufferSize);
             return buffer;
         }
     }

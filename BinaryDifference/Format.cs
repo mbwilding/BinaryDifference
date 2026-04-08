@@ -1,5 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Windows.Controls;
+using System.Diagnostics.CodeAnalysis;
+using Avalonia.Controls;
 
 namespace BinaryDifference
 {
@@ -15,16 +15,16 @@ namespace BinaryDifference
                 case 0: // Default
                     for (int i = 0; i < Differences.Count; i++)
                     {
-                        _ = ListBox1.Items.Add(FormatDefault(Differences[i].Item3, Differences[i].Item1));
-                        _ = ListBox2.Items.Add(FormatDefault(Differences[i].Item3, Differences[i].Item2));
+                        ListBox1.Items.Add(FormatDefault(Differences[i].Item3, Differences[i].Item1));
+                        ListBox2.Items.Add(FormatDefault(Differences[i].Item3, Differences[i].Item2));
                     }
                     break;
 
                 case 1: // Binary Patcher
                     for (int i = 0; i < Differences.Count; i++)
                     {
-                        _ = ListBox1.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item1));
-                        _ = ListBox2.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item2));
+                        ListBox1.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item1));
+                        ListBox2.Items.Add(FormatCSharpDictionary(Differences[i].Item3, Differences[i].Item2));
                     }
                     CleanCSharpDictionary(ListBox1);
                     CleanCSharpDictionary(ListBox2);
@@ -42,12 +42,12 @@ namespace BinaryDifference
             return "{" + ToHex(offset) + ", \"" + hex + "\"},";
         }
 
-        public static void CleanCSharpDictionary(ItemsControl listBox)
+        public static void CleanCSharpDictionary(ListBox listBox)
         {
             int index = listBox.Items.Count - 1;
-            string content = (string)listBox.Items.GetItemAt(index);
+            string content = (string)listBox.Items[index]!;
             listBox.Items.RemoveAt(index);
-            listBox.Items.Insert(index, content.Trim(new[] {','}));
+            listBox.Items.Insert(index, content.TrimEnd(','));
         }
 
         private static string ToHex(long num)

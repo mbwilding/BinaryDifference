@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="BinaryDifference.MainWindow"
+        Title="Binary Difference"
+        Height="450"
+        Width="550"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="ComboBox">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="#FF818181" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontFamily" Value="Courier New" />
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+
+        <Button x:Name="File1Button" Grid.Column="0" Grid.Row="0" Content="File 1" Click="File1_Button_Click" IsTabStop="True" FontWeight="Normal" FontSize="16" HorizontalAlignment="Stretch" />
+        <Button x:Name="File2Button" Grid.Column="1" Grid.Row="0" Content="File 2" Click="File2_Button_Click" IsTabStop="True" FontWeight="Normal" FontSize="16" HorizontalAlignment="Stretch" />
+
+        <ScrollViewer x:Name="Scroll1" Grid.Column="0" Grid.Row="1"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      ScrollChanged="Scroll1_ScrollChanged">
+            <ListBox x:Name="ListBox1" IsHitTestVisible="False" />
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="Scroll2" Grid.Column="1" Grid.Row="1"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      ScrollChanged="Scroll2_ScrollChanged">
+            <ListBox x:Name="ListBox2" IsHitTestVisible="False" />
+        </ScrollViewer>
+
+        <ComboBox x:Name="FormatComboBox" Grid.Column="0" Grid.Row="2" FontSize="16"
+                  HorizontalContentAlignment="Center"
+                  VerticalContentAlignment="Center"
+                  HorizontalAlignment="Stretch"
+                  SelectionChanged="FormatComboBox_OnSelectionChanged">
+            <ComboBoxItem Content="Default"/>
+            <ComboBoxItem Content="Binary Patcher" />
+        </ComboBox>
+
+        <Button x:Name="SaveButton" Grid.Column="1" Grid.Row="2" Content="Save Results" Click="Save_Button_Click" IsTabStop="True" IsEnabled="False" FontWeight="Normal" FontSize="16" HorizontalAlignment="Stretch"/>
+
+        <TextBox x:Name="StatusBox" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2"
+                 Text="Please load the files to compare."
+                 IsReadOnly="True"
+                 IsHitTestVisible="False"
+                 IsTabStop="False"
+                 TextAlignment="Center"
+                 FontWeight="Normal"
+                 Padding="0"/>
+    </Grid>
+</Window>

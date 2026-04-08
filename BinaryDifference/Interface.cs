@@ -1,17 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
-using Microsoft.Win32;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -20,54 +18,86 @@ namespace BinaryDifference
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public partial class MainWindow
     {
-        private void File1_Button_Click(object s, RoutedEventArgs e)
+        // Tag used to store the full file path on a Button
+        private string _file1Path = string.Empty;
+        private string _file2Path = string.Empty;
+
+        private bool _syncingScroll;
+
+        private void File1_Button_Click(object? s, RoutedEventArgs e)
         {
-            FileBrowse(File1Button);
+            _ = FileBrowseAsync(isFile1: true);
         }
 
-        private void File2_Button_Click(object s, RoutedEventArgs e)
+        private void File2_Button_Click(object? s, RoutedEventArgs e)
         {
-            FileBrowse(File2Button);
+            _ = FileBrowseAsync(isFile1: false);
         }
 
-        private void Save_Button_Click(object s, RoutedEventArgs e)
+        private void Save_Button_Click(object? s, RoutedEventArgs e)
         {
-            SaveFile(FormatComboBox.Text == "Binary Patcher");
+            _ = SaveFileAsync(FormatComboBox.SelectedIndex == 1);
         }
 
-        private void ScrollViewer_PreviewMouseWheel(object s, MouseWheelEventArgs e)
+        private void Scroll1_ScrollChanged(object? sender, ScrollChangedEventArgs e)
         {
-            ScrollViewer scv = (ScrollViewer)s;
-            scv.ScrollToVerticalOffset(scv.VerticalOffset - (double)e.Delta / 5);
-            e.Handled = true;
+            if (_syncingScroll) return;
+            _syncingScroll = true;
+            Scroll2.Offset = Scroll1.Offset;
+            _syncingScroll = false;
         }
 
-        private void FormatComboBox_OnSelectionChanged(object s, RoutedEventArgs e)
+        private void Scroll2_ScrollChanged(object? sender, ScrollChangedEventArgs e)
+        {
+            if (_syncingScroll) return;
+            _syncingScroll = true;
+            Scroll1.Offset = Scroll2.Offset;
+            _syncingScroll = false;
+        }
+
+        private void FormatComboBox_OnSelectionChanged(object? s, SelectionChangedEventArgs e)
         {
             Format();
-            Properties.Settings.Default.DataFormat = FormatComboBox.SelectedIndex;
-            Properties.Settings.Default.Save();
+            var settings = AppSettings.Load();
+            settings.DataFormat = FormatComboBox.SelectedIndex;
+            AppSettings.Save(settings);
         }
 
-        private void FileBrowse(Button file)
+        private async Task FileBrowseAsync(bool isFile1)
         {
-            Task.Run(() =>
+            var topLevel = TopLevel.GetTopLevel(this)!;
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                var fileDialog = new OpenFileDialog();
-                if (fileDialog.ShowDialog() == true)
+                Title = isFile1 ? "Select File 1" : "Select File 2",
+                AllowMultiple = false
+            });
+
+            if (files.Count == 0) return;
+
+            var file = files[0];
+            var fullPath = file.TryGetLocalPath() ?? file.Name;
+            var name = file.Name;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (isFile1)
                 {
-                    Dispatcher.BeginInvoke((Action) (() =>
-                    {
-                        file.Content = fileDialog.SafeFileName;
-                        file.Uid = fileDialog.FileName;
-                        StatusBox.Text = file.Uid + " loaded.";
-                        SaveButton.IsEnabled = false;
-                        Clear();
-                        if (File1Button.Uid != string.Empty && File2Button.Uid != string.Empty)
-                        {
-                            FileValidation();
-                        }
-                    }));
+                    File1Button.Content = name;
+                    _file1Path = fullPath;
+                }
+                else
+                {
+                    File2Button.Content = name;
+                    _file2Path = fullPath;
+                }
+
+                StatusBox.Text = fullPath + " loaded.";
+                SaveButton.IsEnabled = false;
+                Clear();
+
+                if (_file1Path != string.Empty && _file2Path != string.Empty)
+                {
+                    FileValidation();
                 }
             });
         }
@@ -75,15 +105,14 @@ namespace BinaryDifference
         private void FileValidation()
         {
             Differences.Clear();
-
             SaveButton.IsEnabled = false;
 
-            var file1 = new FileInfo(File1Button.Uid);
-            var file2 = new FileInfo(File2Button.Uid);
+            var file1 = new FileInfo(_file1Path);
+            var file2 = new FileInfo(_file2Path);
 
             if (file1.Length == file2.Length)
             {
-                CheckDifference(File1Button.Uid, File2Button.Uid);
+                CheckDifference(_file1Path, _file2Path);
             }
             else
             {
@@ -95,105 +124,94 @@ namespace BinaryDifference
         {
             stopWatch.Stop();
             var timeSpan = stopWatch.Elapsed;
-            string elapsedTime = $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}:{timeSpan.Milliseconds:000}";
-            return elapsedTime;
+            return $"{timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}:{timeSpan.Milliseconds:000}";
         }
 
-        private void SaveFile(bool binaryPatcher)
+        private async Task SaveFileAsync(bool binaryPatcher)
         {
-            Task.Run(() =>
+            var topLevel = TopLevel.GetTopLevel(this)!;
+
+            if (binaryPatcher)
             {
-                if (binaryPatcher)
+                var listOfItems = ListBox2.Items.Cast<string>().ToList();
+
+                var files = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
-                    List<string> listOfItems = new();
-                    Dispatcher.BeginInvoke((Action)(() =>
-                    {
-                        var fileDialog = new SaveFileDialog
-                        {
-                            Filter = "Yaml files (*.yml)|*.yml",
-                            FilterIndex = 2,
-                            RestoreDirectory = true
-                        };
-                        
-                        listOfItems.AddRange(ListBox2.Items.Cast<string>());
+                    Title = "Save Binary Patcher File",
+                    SuggestedFileName = "patch",
+                    FileTypeChoices = new[] { new FilePickerFileType("YAML files") { Patterns = new[] { "*.yml" } } }
+                });
 
-                        if (fileDialog.ShowDialog() == true)
-                        {
-                            var serializer = new SerializerBuilder()
-                                .WithNamingConvention(PascalCaseNamingConvention.Instance)
-                                .Build();
+                if (files == null) return;
 
-                            var patch = new PatchFile
-                            {
-                                Name = "Fill me in",
-                                Path = "Fill me in",
-                                Payload = new Dictionary<long, string>()
-                            };
+                var savePath = files.TryGetLocalPath()!;
 
-                            foreach (var dict in listOfItems.Select(item => item
-                                         .Replace("{", string.Empty)
-                                         .Replace("\"", string.Empty)
-                                         .Replace(" ", string.Empty)
-                                         .Replace("}", string.Empty)
-                                         .TrimEnd(',')
-                                         .Split(',')
-                                         .ToList()))
-                            {
-                                patch.Payload.Add(Convert.ToInt64(dict[0], 16), dict[1]);
-                            }
+                var serializer = new SerializerBuilder()
+                    .WithNamingConvention(PascalCaseNamingConvention.Instance)
+                    .Build();
 
-                            var patchFile = serializer.Serialize(new List<PatchFile> { patch });
-                            File.WriteAllText(fileDialog.FileName, patchFile);
-                        }
-                    }));
-                }
-                else
+                var patch = new PatchFile
                 {
-                    var fileDialog = new SaveFileDialog
-                    {
-                        Filter = "Text files (*.txt)|*.txt",
-                        FilterIndex = 2,
-                        RestoreDirectory = true
-                    };
+                    Name = "Fill me in",
+                    Path = "Fill me in",
+                    Payload = new Dictionary<long, string>()
+                };
 
-                    if (fileDialog.ShowDialog() == true)
-                    {
-                        Dispatcher.BeginInvoke((Action)(() =>
-                        {
-                            var list1 = new List<string>();
-                            var list2 = new List<string>();
-                            ListCreate(list1, File1Button, ListBox1);
-                            ListCreate(list2, File2Button, ListBox2);
-
-                            var filePathWithoutExt = Path.ChangeExtension(fileDialog.FileName, null);
-                            WriteFile(list1, filePathWithoutExt + "-File1.txt");
-                            WriteFile(list2, filePathWithoutExt + "-File2.txt");
-                        }));
-                    }
+                foreach (var dict in listOfItems.Select(item => item
+                             .Replace("{", string.Empty)
+                             .Replace("\"", string.Empty)
+                             .Replace(" ", string.Empty)
+                             .Replace("}", string.Empty)
+                             .TrimEnd(',')
+                             .Split(',')
+                             .ToList()))
+                {
+                    patch.Payload.Add(Convert.ToInt64(dict[0], 16), dict[1]);
                 }
-            });
-        }
-        
-        private static void ListCreate(ICollection<string> list, UIElement fileBox, ItemsControl listBox)
-        {
-            list.Add(
-                "File: " +
-                fileBox.Uid +
-                "\n------------------------------\n"
-                );
-            foreach (string item in listBox.Items)
+
+                var patchFile = serializer.Serialize(new List<PatchFile> { patch });
+                await File.WriteAllTextAsync(savePath, patchFile);
+
+                StatusBox.Text = File.Exists(savePath) ? "Files Saved." : "Saving failed: Check path write permissions.";
+            }
+            else
             {
-                list.Add(item);
+                var files = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    Title = "Save Results",
+                    SuggestedFileName = "results",
+                    FileTypeChoices = new[] { new FilePickerFileType("Text files") { Patterns = new[] { "*.txt" } } }
+                });
+
+                if (files == null) return;
+
+                var savePath = files.TryGetLocalPath()!;
+
+                var list1 = new List<string>();
+                var list2 = new List<string>();
+                ListCreate(list1, _file1Path, ListBox1);
+                ListCreate(list2, _file2Path, ListBox2);
+
+                var filePathWithoutExt = Path.ChangeExtension(savePath, null);
+                await WriteFileAsync(list1, filePathWithoutExt + "-File1.txt");
+                await WriteFileAsync(list2, filePathWithoutExt + "-File2.txt");
             }
         }
 
-        private void WriteFile(IEnumerable<string> list, string path)
+        private static void ListCreate(ICollection<string> list, string filePath, ListBox listBox)
         {
-            using (TextWriter textWriter = new StreamWriter(path))
+            list.Add("File: " + filePath + "\n------------------------------\n");
+            foreach (var item in listBox.Items)
             {
-                foreach (var itemText in list)
-                    textWriter.WriteLine(itemText);
+                if (item is string s) list.Add(s);
             }
+        }
+
+        private async Task WriteFileAsync(IEnumerable<string> list, string path)
+        {
+            await using var textWriter = new StreamWriter(path);
+            foreach (var itemText in list)
+                await textWriter.WriteLineAsync(itemText);
 
             StatusBox.Text = File.Exists(path) ? "Files Saved." : "Saving failed: Check path write permissions.";
         }
@@ -208,7 +226,7 @@ namespace BinaryDifference
             ListBox1.Items.Clear();
             ListBox2.Items.Clear();
         }
-        
+
         private class PatchFile
         {
             public string Name { get; init; } = null!;
